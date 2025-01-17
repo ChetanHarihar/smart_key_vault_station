@@ -10,7 +10,7 @@ class App(ctk.CTk):
 
         # Set CTk appearance mode
         ctk.set_appearance_mode("Light")
-        ctk.set_default_color_theme("themes/lavender.json")
+        ctk.set_default_color_theme("themes/violet.json")
 
         # Load the login panel 
         self.load_login_panel()

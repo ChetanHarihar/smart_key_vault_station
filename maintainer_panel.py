@@ -33,7 +33,7 @@ class MaintainerPanel(ctk.CTkFrame):
 
         # Create a frame to display the maintainer details
         self.maintainer_widget_frame = ctk.CTkFrame(master=self, fg_color=white)
-        self.maintainer_widget_frame.pack(pady=10)
+        self.maintainer_widget_frame.pack(pady=(0,10))
 
         # name label
         ctk.CTkLabel(master=self.maintainer_widget_frame, text="Name:", font=("Arial", 16)).grid(row=0, column=0, padx=5, pady=5)
@@ -55,9 +55,47 @@ class MaintainerPanel(ctk.CTkFrame):
         designation_var = ctk.StringVar(value=self.maintainer_data['designation'])
         ctk.CTkEntry(master=self.maintainer_widget_frame, textvariable=designation_var, text_color=black, font=("Arial", 16), width=250, justify="center", state="disabled").grid(row=3, column=1, padx=5, pady=5)
 
-        # keys checkbox
-        keys = KEY_MAP[self.maintainer_data['department']]
-        print(keys)
+        # frame to hold the key checkbox
+        self.key_checkbox_frame = ctk.CTkFrame(master=self, fg_color=white, corner_radius=0)
+        self.key_checkbox_frame.pack()
+
+        # select key label
+        ctk.CTkLabel(master=self.key_checkbox_frame, text="Select key:", font=("Arial", 16)).pack(pady=(0,5))
+
+        # retrieve keys available for the department
+        self.available_keys = KEY_MAP.get(self.maintainer_data['department'], [])
+
+        # Dictionary to store BooleanVars for each checkbox state
+        self.key_checkbox_vars = {}
+
+        for key in self.available_keys:
+            # Create a BooleanVar to store the state of the checkbox
+            self.key_checkbox_vars[key] = ctk.BooleanVar()
+            
+            # Create a checkbox for each room and pack it
+            checkbox = ctk.CTkCheckBox(
+                master=self.key_checkbox_frame,
+                text=key,
+                variable=self.key_checkbox_vars[key],  # Linked to the checkbox state
+                onvalue=True,
+                offvalue=False,
+                font=("Arial", 14)
+            )
+            checkbox.pack(pady=4)
+
+        # create a frame to hold the label and buttons
+        self.purpose_frame = ctk.CTkFrame(master=self, fg_color=white, corner_radius=0)
+        self.purpose_frame.pack(pady=(15,0))
+        # select purpose label
+        ctk.CTkLabel(master=self.purpose_frame, text="Select purpose:", font=("Arial", 16)).pack(side='left', padx=5)
+        # maintainance button
+        ctk.CTkButton(master=self.purpose_frame, text="   Maintainance   ", font=("Arial", 14), width=0, fg_color=blue, hover=None, command=lambda:print("Purpose selected: Maintainance")).pack(side='left', padx=5)
+        # emergency button
+        ctk.CTkButton(master=self.purpose_frame, text="   Emergency   ", font=("Arial", 14), width=0, fg_color=red, hover=None, command=lambda:print("Purpose selected: Emergency")).pack(side='left', padx=5)
+
+        # proceed button
+        self.proceed_button = ctk.CTkButton(master=self, text="   Proceed   ", font=("Arial", 14), width=0, fg_color=purple, hover=None, command=lambda:print("Proceed clicked!"))
+        self.proceed_button.pack(pady=15)
 
 
 if __name__ == "__main__":
@@ -68,7 +106,7 @@ if __name__ == "__main__":
 
     # Set CTk appearance mode
     ctk.set_appearance_mode("Light")
-    ctk.set_default_color_theme("themes/lavender.json")
+    ctk.set_default_color_theme("themes/violet.json")
 
     maintainer_data = {
                         "name": "Chetan S Harihar",

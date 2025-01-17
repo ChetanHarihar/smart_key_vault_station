@@ -12,6 +12,8 @@ purple = "#800080"
 white = "#FFFFFF"
 black = "#000000"
 green = "#36A211"
+red = "#FF0000"
+blue = "#0096FF"
 
 # Device data
 STATION_NAME = os.environ.get('STATION_NAME')
@@ -37,5 +39,6 @@ KEY_MAP = {"Signalling": [s_and_t_ups, ser],
            "Telecom & AFC": [s_and_t_ups, ter], 
            "Traction": [ass_and_tss], 
            "E & M": [ass_and_tss, dg, pump], 
-           "all": [s_and_t_ups, ser, ter, ass_and_tss, dg, pump]
+           "Fire": [s_and_t_ups, ser, ter, ass_and_tss, dg, pump],
+           "All": [s_and_t_ups, ser, ter, ass_and_tss, dg, pump]
            }

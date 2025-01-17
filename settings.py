@@ -4,8 +4,8 @@ import os
 
 
 # Screen size
-WINDOW_WIDTH = 1024
-WINDOW_HEIGHT = 600
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 800
 
 # Colors
 purple = "#800080"

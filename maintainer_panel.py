@@ -6,6 +6,8 @@ class MaintainerPanel(ctk.CTkFrame):
         super().__init__(master, **kwargs)
         self.root = master
         self.maintainer_data = maintainer_data
+        self.selected_keys = []
+        self.purpose_selected = None
         # Configure the frame dimensions and color
         self.configure(fg_color="white", width=WINDOW_WIDTH, height=WINDOW_HEIGHT)
         self.pack_propagate(False)
@@ -89,6 +91,11 @@ class MaintainerPanel(ctk.CTkFrame):
         )
         checkbox.grid(row=1, column=0, padx=20, pady=15, sticky='w')
 
+        # load the information button
+        self.info_btn_image = Image.open(os.path.join('assets', 'information-button.png'))  # Replace with your image file
+        self.info_btn_image = self.info_btn_image.resize((30, 30))  # Resize the image to fit the button
+        self.info_btn_image_ctk = ctk.CTkImage(light_image=self.info_btn_image, dark_image=self.info_btn_image, size=(30, 30))
+
         for index, key in enumerate(self.available_keys, start=2):
             # Create a BooleanVar to store the state of the checkbox
             self.key_checkbox_vars[key] = ctk.BooleanVar()
@@ -102,23 +109,25 @@ class MaintainerPanel(ctk.CTkFrame):
                 offvalue=False,
                 font=("Arial", 26)
             )
-            checkbox.grid(row=index, column=0, padx=20, pady=15, sticky='w')
+            checkbox.grid(row=index, column=0, padx=20, pady=12, sticky='w')
 
-            ctk.CTkButton(master=key_select_frame, text="i", font=("Arial", 22), width=0, fg_color=purple, corner_radius=50, hover=None).grid(row=index, column=1, padx=20, pady=15, sticky='w')
+            ctk.CTkButton(master=key_select_frame, image=self.info_btn_image_ctk, text='', font=("Arial", 22), width=0, fg_color='transparent', hover=False, command=lambda:print("Clicked info!")).grid(row=index, column=1, padx=20, pady=12, sticky='w')
 
         # frame to hold purpose widgets
         purpose_select_frame = ctk.CTkFrame(master=self.selection_frame, fg_color=white, corner_radius=0)
-        purpose_select_frame.pack(side='bottom', padx=50, pady=(20,0))
+        purpose_select_frame.pack(side='bottom', padx=50, pady=(10,0))
 
         # select purpose label
         ctk.CTkLabel(master=purpose_select_frame, text="Select purpose:", font=("Arial", 24, 'bold')).pack(side='left', padx=5)
         # maintainance button
-        ctk.CTkButton(master=purpose_select_frame, text="   Maintainance   ", font=("Arial", 22), width=0, height=40, fg_color=blue, hover=None, command=lambda:print("Purpose selected: Maintainance")).pack(side='left', padx=5)
+        self.maintainance_btn = ctk.CTkButton(master=purpose_select_frame, text="   Maintainance   ", font=("Arial", 22), width=0, height=40, fg_color=gray, hover=None, command=lambda:self.on_purpose_select('Maintainance'))
+        self.maintainance_btn.pack(side='left', padx=5)
         # emergency button
-        ctk.CTkButton(master=purpose_select_frame, text="   Emergency   ", font=("Arial", 22), width=0, height=40, fg_color=red, hover=None, command=lambda:print("Purpose selected: Emergency")).pack(side='left', padx=5)
+        self.emergency_btn = ctk.CTkButton(master=purpose_select_frame, text="   Emergency   ", font=("Arial", 22), width=0, height=40, fg_color=gray, hover=None, command=lambda:self.on_purpose_select('Emergency'))
+        self.emergency_btn.pack(side='left', padx=5)
 
         # proceed button
-        self.proceed_button = ctk.CTkButton(master=self, text="Proceed", font=("Arial", 24), width=180, height=50, fg_color=purple, hover=None, command=lambda:print("Proceed clicked!"))
+        self.proceed_button = ctk.CTkButton(master=self, text="Proceed", font=("Arial", 24), width=180, height=50, fg_color=purple, command=self.on_proceed)
         self.proceed_button.pack(pady=(0,30))
 
     def select_all_checkbox(self):
@@ -127,6 +136,17 @@ class MaintainerPanel(ctk.CTkFrame):
             if key != 'Select all':  # Don't modify the 'Select all' checkbox itself
                 key_var.set(state)  # Set the state of the individual checkboxes
 
+    def on_purpose_select(self, purpose):
+        self.purpose_selected = purpose
+        if purpose == 'Maintainance':
+            self.maintainance_btn.configure(fg_color=blue)
+            self.emergency_btn.configure(fg_color=gray)
+        elif purpose == 'Emergency':
+            self.maintainance_btn.configure(fg_color=gray)
+            self.emergency_btn.configure(fg_color=red)
+
+    def on_proceed(self):
+        pass
 
     def exit_panel(self):
         self.destroy()
@@ -139,7 +159,7 @@ if __name__ == "__main__":
     # Configure the root window
     root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
 
-    root.overrideredirect(True)   # Enables full screen
+    # root.overrideredirect(True)   # Enables full screen
 
     # Set CTk appearance mode
     ctk.set_appearance_mode("Light")

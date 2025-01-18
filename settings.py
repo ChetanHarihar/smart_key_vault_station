@@ -14,6 +14,7 @@ black = "#000000"
 green = "#36A211"
 red = "#FF0000"
 blue = "#0096FF"
+gray = "#A9A9A9"
 
 # Device data
 STATION_NAME = os.environ.get('STATION_NAME')

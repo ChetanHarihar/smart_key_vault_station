@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import tkinter as tk
 from PIL import Image
 import os
 
@@ -15,6 +16,7 @@ green = "#36A211"
 red = "#FF0000"
 blue = "#0096FF"
 gray = "#A9A9A9"
+platinum = "#E5E4E2"
 
 # Device data
 STATION_NAME = os.environ.get('STATION_NAME')

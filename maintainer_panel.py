@@ -146,7 +146,68 @@ class MaintainerPanel(ctk.CTkFrame):
             self.emergency_btn.configure(fg_color=red)
 
     def on_proceed(self):
-        pass
+        # get all the selected keys
+        for key, value in self.key_checkbox_vars.items():
+            if key == 'Select all':
+                continue
+            if value.get():
+                self.selected_keys.append(key)
+        if self.purpose_selected and self.selected_keys:
+            if self.purpose_selected == 'Maintainance':
+                self.proceed_button.destroy()
+                # pack sc scan label
+                self.sc_scan_label = ctk.CTkLabel(master=self, text="Scan station controller card", font=("Arial", 30, 'bold'), text_color=green)
+                self.sc_scan_label.pack(pady=(10,30))
+            elif self.purpose_selected == 'Emergency':
+                # retrieve keys without approval
+                pass
+        else:
+            self.open_toplevel_window(window_width=450, window_height=200, title="Unable to proceed", color=red, message="Select a key and purpose", button="OK")
+
+    def open_toplevel_window(self, window_width, window_height, title, color, message, button=None, callback_function=None):
+        # Create a Toplevel window
+        top_level = tk.Toplevel()  # Using Toplevel from tkinter
+
+        # Calculate the position for the center of the screen based on custom screen size
+        position_top = int((WINDOW_HEIGHT - window_height) / 2)
+        position_left = int((WINDOW_WIDTH - window_width) / 2)
+        
+        # Set the geometry of the Toplevel window (position + size)
+        top_level.geometry(f"{window_width}x{window_height}+{position_left}+{position_top}")
+
+        # Remove the close, minimize, and maximize buttons
+        top_level.overrideredirect(True)  # Removes window decorations (title bar, buttons)
+        
+        # Optionally prevent closing the window (X button)
+        top_level.protocol("WM_DELETE_WINDOW", lambda: None)
+        
+        # Set window to be non-resizable
+        top_level.resizable(False, False)
+
+        # Add a border to the Toplevel window
+        top_level.configure(bg=platinum, bd=5, relief='groove')
+
+        # Focus on the Toplevel window
+        top_level.focus_set()
+
+        # Delay the grab_set() call to after the window is visible
+        top_level.after(100, top_level.grab_set)  # Call grab_set after 100ms
+
+        # add widgets
+        title_label = ctk.CTkLabel(top_level, text=title, font=("Arial", 22, 'bold'), fg_color=color, text_color=white, corner_radius=5)
+        title_label.pack(padx=5, pady=5, fill='x')
+
+        msg_label = ctk.CTkLabel(top_level, text=message, font=("Arial", 20))
+        msg_label.pack(pady=30)
+
+        def destroy_toplevel():
+            if callback_function:
+                callback_function()
+            top_level.destroy()
+
+        if button:
+            button = ctk.CTkButton(top_level, text=button, font=("Arial", 22, 'bold'), fg_color=purple, hover=False, command=top_level.destroy)
+            button.pack(pady=10)
 
     def exit_panel(self):
         self.destroy()
@@ -159,7 +220,7 @@ if __name__ == "__main__":
     # Configure the root window
     root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
 
-    # root.overrideredirect(True)   # Enables full screen
+    root.overrideredirect(True)   # Enables full screen
 
     # Set CTk appearance mode
     ctk.set_appearance_mode("Light")

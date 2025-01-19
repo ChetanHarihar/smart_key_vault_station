@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from tkinter import ttk
 
-class CustomTreeView(ttk.Treeview):
+class TreeView(ttk.Treeview):
     def __init__(self, parent, tags=('oddrow', 'evenrow'), *args, **kwargs):
         super().__init__(parent, selectmode='browse', *args, **kwargs)
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     frame.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
 
     # Create and configure the custom treeview
-    custom_treeview = CustomTreeView(frame)
+    custom_treeview = TreeView(frame)
 
     # Create columns
     custom_treeview["columns"] = ("SL.no", "ID", "Category", "Size", "Quantity", "Quantity_selected")

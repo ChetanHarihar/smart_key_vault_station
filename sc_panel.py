@@ -32,11 +32,11 @@ class StationControllerPanel(ctk.CTkFrame):
         self.exit_btn.pack(side='right', padx=15)
 
         # Create the Tabview widget to display various pages
-        tabview = ctk.CTkTabview(master=self, fg_color=white, border_width=3, border_color="#CCCCFF")
+        tabview = ctk.CTkTabview(master=self, fg_color=white, border_width=4, border_color="#CCCCFF")
         tabview.pack(fill="both", expand=True, padx=10, pady=(0,10))
 
         # Customize font for the tab headings
-        tabview_font = ctk.CTkFont(family="Arial", size=22)
+        tabview_font = ctk.CTkFont(family="Arial", size=28)
 
         # Modify the font and appearance of the tabs
         tabview._segmented_button.configure(
@@ -162,7 +162,7 @@ class StationControllerPanel(ctk.CTkFrame):
 
         # Set up the style to adjust row height
         style = ttk.Style()
-        style.configure("Treeview.Heading", font=("Arial", 10, "bold"), padding=(5,5))
+        style.configure("Treeview.Heading", font=("Roboto", 14, "bold"), background=lavender, foreground="black", padding=(10,10))
         style.configure("Treeview", font=("Arial", 10))  # Change the font for rows
         style.configure("Treeview", rowheight=35)
 
@@ -172,24 +172,24 @@ class StationControllerPanel(ctk.CTkFrame):
         # Create columns
         self.logs_treeview["columns"] = ("issued_date", "issued_time", "key", "picker_employee_name", "picker_employee_ID", "picker_departmant", "picker_designation", "purpose", "issuer_sc_name", "issuer_sc_ID", "returner_employee_name", "returner_employee_ID", "returner_departmant", "returner_designation", "receiver_sc_name", "receiver_sc_ID", "returned_date", "returned_time")
         self.logs_treeview.column("#0", width=0, stretch=tk.NO)  # Hide the item_tree column
-        self.logs_treeview.column("issued_date", width=100, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("issued_time", width=100, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("key", width=240, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("picker_employee_name", width=250, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("picker_employee_ID", width=110, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("picker_departmant", width=250, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("picker_designation", width=200, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("purpose", width=160, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("issuer_sc_name", width=250, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("issuer_sc_ID", width=110, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("returner_employee_name", width=250, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("returner_employee_ID", width=110, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("returner_departmant", width=250, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("returner_designation", width=200, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("receiver_sc_name", width=250, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("receiver_sc_ID", width=110, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("returned_date", width=110, anchor=tk.CENTER, stretch=tk.NO)
-        self.logs_treeview.column("returned_time", width=110, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("issued_date", width=160, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("issued_time", width=160, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("key", width=220, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("picker_employee_name", width=350, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("picker_employee_ID", width=180, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("picker_departmant", width=300, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("picker_designation", width=300, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("purpose", width=180, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("issuer_sc_name", width=350, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("issuer_sc_ID", width=180, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("returner_employee_name", width=350, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("returner_employee_ID", width=180, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("returner_departmant", width=300, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("returner_designation", width=300, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("receiver_sc_name", width=350, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("receiver_sc_ID", width=180, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("returned_date", width=160, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("returned_time", width=160, anchor=tk.CENTER, stretch=tk.NO)
 
         # Create headings
         self.logs_treeview.heading("issued_date", text="Issued Date")
@@ -200,14 +200,14 @@ class StationControllerPanel(ctk.CTkFrame):
         self.logs_treeview.heading("picker_departmant", text="Departmant")
         self.logs_treeview.heading("picker_designation", text="Designation")
         self.logs_treeview.heading("purpose", text="Purpose")
-        self.logs_treeview.heading("issuer_sc_name", text="Employee name")
-        self.logs_treeview.heading("issuer_sc_ID", text="Employee ID")
+        self.logs_treeview.heading("issuer_sc_name", text="SC name")
+        self.logs_treeview.heading("issuer_sc_ID", text="SC ID")
         self.logs_treeview.heading("returner_employee_name", text="Employee name")
         self.logs_treeview.heading("returner_employee_ID", text="Employee ID")
         self.logs_treeview.heading("returner_departmant", text="Departmant")
         self.logs_treeview.heading("returner_designation", text="Designation")
-        self.logs_treeview.heading("receiver_sc_name", text="Employee name")
-        self.logs_treeview.heading("receiver_sc_ID", text="Employee ID")
+        self.logs_treeview.heading("receiver_sc_name", text="SC name")
+        self.logs_treeview.heading("receiver_sc_ID", text="SC ID")
         self.logs_treeview.heading("returned_date", text="Returned Date")
         self.logs_treeview.heading("returned_time", text="Returned Time")
 
@@ -254,6 +254,8 @@ if __name__ == "__main__":
 
     # Configure the root window
     root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
+
+    root.overrideredirect(True)   # Enables full screen
 
     # Set CTk appearance mode
     ctk.set_appearance_mode("Light")

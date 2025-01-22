@@ -40,7 +40,7 @@ class LoginPanel(ctk.CTkFrame):
             print(uid)
             # load the panel
             if self.update_panel_callback:
-                self.update_panel_callback(UID=uid)
+                self.update_panel_callback(login_panel=self, UID=uid)
         except Exception as e:
             print(f"Error reading RFID tag: {e}")
         finally:

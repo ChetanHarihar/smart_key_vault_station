@@ -50,3 +50,44 @@ def get_all_collections():
     except Exception as ex:
         print(f"An unexpected error occurred: {ex}")
         return None
+
+# Function to authenticate the user
+def auth_user(collection_name="employee", UID=None, projection=None):
+    """
+    Authenticates a user by validating the card scanned.
+
+    Parameters:
+        collection_name (str): The name of the collection within the database.
+        UID (str): The card ID for authentication.
+        projection (dict): Optional. Specifies fields to include or exclude in the result.
+
+    Returns:
+        dict or None: A single document matching the filter if found, else None.
+    """
+    if not UID:
+        print("Card ID is required for authentication.")
+        return None
+
+    filter_criteria = {'UID': UID, 'active_status': True}
+
+    try:
+        # Connect to the database
+        db = get_db_connection()
+        
+        # Access the specified collection
+        collection = db[collection_name]
+        
+        # Query for a single matching document
+        document = collection.find_one(filter_criteria, projection)
+        
+        return document
+
+    except ConnectionError as conn_err:
+        print(f"Failed to connect to MongoDB: {conn_err}")
+        return None
+    except PyMongoError as e:
+        print(f"An error occurred with the MongoDB operation: {e}")
+        return None
+    except Exception as ex:
+        print(f"An unexpected error occurred: {ex}")
+        return None

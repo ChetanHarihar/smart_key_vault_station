@@ -4,10 +4,11 @@ from gui_components.toplevel import open_toplevel_window
 
 
 class StationControllerPanel(ctk.CTkFrame):
-    def __init__(self, master=None, sc_data=None, **kwargs):
+    def __init__(self, master=None, sc_data=None, login_panel_callback=None, **kwargs):
         super().__init__(master, **kwargs)
         self.root = master
         self.sc_data = sc_data
+        self.login_panel_callback = login_panel_callback
         self.selected_keys = []
         # Configure the frame dimensions and color
         self.configure(fg_color="white", width=WINDOW_WIDTH, height=WINDOW_HEIGHT)
@@ -246,7 +247,7 @@ class StationControllerPanel(ctk.CTkFrame):
 
     def exit_panel(self):
         self.destroy()
-        root.destroy()
+        self.login_panel_callback()
 
 
 if __name__ == "__main__":
@@ -255,7 +256,7 @@ if __name__ == "__main__":
     # Configure the root window
     root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
 
-    root.overrideredirect(True)   # Enables full screen
+    # root.overrideredirect(True)   # Enables full screen
 
     # Set CTk appearance mode
     ctk.set_appearance_mode("Light")

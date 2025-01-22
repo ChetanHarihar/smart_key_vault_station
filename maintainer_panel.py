@@ -3,10 +3,11 @@ from gui_components.toplevel import open_toplevel_window
 
 
 class MaintainerPanel(ctk.CTkFrame):
-    def __init__(self, master=None, maintainer_data=None, **kwargs):
+    def __init__(self, master=None, maintainer_data=None, login_panel_callback=None, **kwargs):
         super().__init__(master, **kwargs)
         self.root = master
         self.maintainer_data = maintainer_data
+        self.login_panel_callback = login_panel_callback
         self.selected_keys = []
         self.purpose_selected = None
         # Configure the frame dimensions and color
@@ -167,7 +168,7 @@ class MaintainerPanel(ctk.CTkFrame):
 
     def exit_panel(self):
         self.destroy()
-        root.destroy()
+        self.login_panel_callback()
 
 
 if __name__ == "__main__":

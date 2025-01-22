@@ -20,7 +20,7 @@ def read_nfc_tag():
             # Format the UID as a 7-byte hexadecimal string
             hex_uid = ''.join([hex(i)[2:].zfill(2) for i in uid])  # Convert each byte to 2-digit hex
             # Ensure the UID is 7 bytes long (14 hex characters)
-            return hex_uid  # Return the detected UID
+            return hex_uid.upper()  # Return the detected UID
         time.sleep(0.1)  # Delay to avoid high CPU usage
 
 # This block ensures the code is only run when executed directly, not imported.

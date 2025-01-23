@@ -1,8 +1,13 @@
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
+from datetime import datetime, timedelta, timezone
+import pytz
 import os
 
+# Database connection string
 DB_CONN_STRING = os.environ.get('DB_CONN_STRING')
+# Define the IST timezone
+IST_TIMEZONE = pytz.timezone('Asia/Kolkata')
 
 # Function to establish a connection to the MongoDB database
 def get_db_connection(database_name="smart_key_vault"):
@@ -91,3 +96,72 @@ def auth_user(collection_name="employee", UID=None, projection=None):
     except Exception as ex:
         print(f"An unexpected error occurred: {ex}")
         return None
+
+# Function to fetch completed logs for a specific station
+def fetch_completed_logs(
+    collection_name="log",
+    station_name=None,
+    projection=None,
+    offset=0,
+    limit=0,
+    history=None
+):
+    # Ensure the station name is provided
+    if not station_name:
+        print("Error: Station name is required.")
+        return []
+
+    # Base query
+    query = {
+        "station": station_name,
+        "status": "Completed"  # Target logs with 'Completed' status
+    }
+
+    # Add time-based filter if history is provided
+    if history:
+        try:
+            # Get the current IST time
+            current_time = datetime.now(IST_TIMEZONE)
+            if history == "1 week":
+                start_time = current_time - timedelta(weeks=1)
+            elif history == "2 weeks":
+                start_time = current_time - timedelta(weeks=2)
+            elif history == "1 month":
+                start_time = current_time - timedelta(days=30)
+            else:
+                raise ValueError("Invalid history value. Use '1 week', '2 weeks', or '1 month'.")
+            
+            # Convert timestamps to UTC for MongoDB query
+            start_time_utc = start_time.astimezone(pytz.utc)
+            query["issued_timestamp"] = {"$gte": start_time_utc}
+        except ValueError as ve:
+            print(f"Error: {ve}")
+            return []
+
+    try:
+        # Connect to the database
+        db = get_db_connection()  # This should return the actual database connection
+        collection = db[collection_name]
+
+        # Fetch the logs using the query
+        documents = list(
+            collection.find(query, projection)  # Apply the projection here
+                      .sort("issued_timestamp", -1)  # Sort by issued_timestamp in descending order
+                      .skip(offset)
+                      .limit(limit)
+        )
+
+        # Return the result or an empty list if no documents are found
+        return documents
+
+    except PyMongoError as e:
+        print(f"An error occurred with the MongoDB operation: {e}")
+        return []
+    except Exception as ex:
+        print(f"An unexpected error occurred: {ex}")
+        return []
+    
+
+# Example usage
+if __name__ == "__main__":
+    pass

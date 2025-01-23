@@ -10,11 +10,11 @@ class TreeView(ttk.Treeview):
             self.tag_configure(tag, background='#ECECEC' if tag == 'oddrow' else '#CFCFCF', foreground='#000000')
 
         # Create and place the vertical scrollbar
-        self.vertical_scrollbar = ctk.CTkScrollbar(parent, orientation="vertical", command=self.yview)
+        self.vertical_scrollbar = ctk.CTkScrollbar(parent, orientation="vertical", width=20, command=self.yview)
         self.vertical_scrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
 
         # Create and place the horizontal scrollbar
-        self.horizontal_scrollbar = ctk.CTkScrollbar(parent, orientation="horizontal", command=self.xview)
+        self.horizontal_scrollbar = ctk.CTkScrollbar(parent, orientation="horizontal", height=20, command=self.xview)
         self.horizontal_scrollbar.pack(side=ctk.BOTTOM, fill=ctk.X)
 
         # Configure the Treeview's yscroll and xscroll commands

@@ -43,7 +43,7 @@ class App(ctk.CTk):
             # check user role
             if self.employee_data['role'].lower() == "maintainer":
                 self.load_maintainer_panel()
-            elif self.employee_data['role'].lower() in ["sc", "executive", f"{STATION_NAME.lower()} mastercard"]:
+            elif self.employee_data['role'].lower() in ["sc", "executive"]:
                 self.load_sc_panel()
         else:
             # show invalid card pop-up

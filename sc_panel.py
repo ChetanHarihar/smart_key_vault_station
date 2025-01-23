@@ -97,6 +97,8 @@ class StationControllerPanel(ctk.CTkFrame):
 
         # Dictionary to store BooleanVars for each checkbox state
         self.key_checkbox_vars = {}
+        # Store references to checkboxes
+        self.checkboxes = {}
 
         # Create a BooleanVar to store the state of the select all checkbox
         self.key_checkbox_vars['Select all'] = ctk.BooleanVar()
@@ -112,6 +114,9 @@ class StationControllerPanel(ctk.CTkFrame):
             command=self.select_all_checkbox
         )
         checkbox.grid(row=1, column=0, padx=20, pady=15, sticky='w')
+
+        # Store the checkbox reference in the dictionary
+        self.checkboxes['Select All'] = checkbox
 
         # load the information button
         self.info_btn_image = Image.open(os.path.join('assets', 'information-button.png'))  # Replace with your image file
@@ -133,6 +138,9 @@ class StationControllerPanel(ctk.CTkFrame):
             )
             checkbox.grid(row=index, column=0, padx=20, pady=12, sticky='w')
 
+            # Store the checkbox reference in the dictionary
+            self.checkboxes[key] = checkbox
+
             ctk.CTkButton(master=key_select_frame, image=self.info_btn_image_ctk, text='', font=("Arial", 22), width=0, fg_color='transparent', hover=False, command=lambda:print("Clicked info!")).grid(row=index, column=1, padx=20, pady=12, sticky='w')
 
         # proceed button
@@ -153,9 +161,21 @@ class StationControllerPanel(ctk.CTkFrame):
             if value.get():
                 self.selected_keys.append(key)
         if self.selected_keys:
+            # on proceed disable widgets
+            self.disable_widgets()
             pass
         else:
             open_toplevel_window(toplevel_width=450, toplevel_height=200, title="Unable to proceed", color=red, message="Select a key and purpose", button="OK")
+
+    def disable_widgets(self):
+        # Disable all checkboxes
+        for checkbox in self.checkboxes.values():
+            checkbox.configure(state="disabled")
+
+    def enable_widgets(self):
+    # Ensable all checkboxes
+        for checkbox in self.checkboxes.values():
+            checkbox.configure(state="normal")
 
     def load_view_logs_tab(self):
         self.view_logs_treeview_frame = tk.Frame(self.view_logs_tab, bg="white")

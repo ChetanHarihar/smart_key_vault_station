@@ -1,6 +1,7 @@
 from settings import *
 from gui_components.treeview import TreeView
 from gui_components.toplevel import open_toplevel_window
+from services.database import *
 
 
 class StationControllerPanel(ctk.CTkFrame):
@@ -10,6 +11,9 @@ class StationControllerPanel(ctk.CTkFrame):
         self.sc_data = sc_data
         self.login_panel_callback = login_panel_callback
         self.selected_keys = []
+        self.page_size = 20
+        self.current_offset = 0
+        self.all_data_loaded = False
         # Configure the frame dimensions and color
         self.configure(fg_color="white", width=WINDOW_WIDTH, height=WINDOW_HEIGHT)
         self.pack_propagate(False)
@@ -184,8 +188,8 @@ class StationControllerPanel(ctk.CTkFrame):
         # Set up the style to adjust row height
         style = ttk.Style()
         style.configure("Treeview.Heading", font=("Roboto", 14, "bold"), background=lavender, foreground="black", padding=(10,10))
-        style.configure("Treeview", font=("Arial", 10))  # Change the font for rows
-        style.configure("Treeview", rowheight=35)
+        style.configure("Treeview", font=("Arial", 14))  # Change the font for rows
+        style.configure("Treeview", rowheight=40)
 
         # Create and configure the custom treeview
         self.logs_treeview = TreeView(self.view_logs_treeview_frame)
@@ -232,8 +236,66 @@ class StationControllerPanel(ctk.CTkFrame):
         self.logs_treeview.heading("returned_date", text="Returned Date")
         self.logs_treeview.heading("returned_time", text="Returned Time")
 
+        # Bind Scroll Event
+        self.logs_treeview.bind("<Motion>", self.load_more_past_logs)
+        # load initial data
+        self.insert_past_logs()
+
     def insert_past_logs(self):
-        pass
+        """Load more logs and insert them into the Treeview"""
+        if self.all_data_loaded:
+            return
+
+        logs = fetch_completed_logs(
+            station_name=STATION_NAME,
+            offset=self.current_offset,
+            limit=self.page_size
+        )
+
+        if not logs:
+            self.all_data_loaded = True
+            return
+
+        for index, log in enumerate(logs):
+            issued_date = log.get('issued_timestamp',"").strftime("%d-%m-%Y")
+            issued_time = log.get('issued_timestamp',"").strftime("%H:%M")
+            returned_date = log.get('returned_timestamp',"").strftime("%d-%m-%Y")
+            returned_time = log.get('returned_timestamp',"").strftime("%H:%M")
+
+            # Determine the tag for row coloring
+            row_tag = 'evenrow' if (self.current_offset + index) % 2 == 0 else 'oddrow'
+
+            self.logs_treeview.insert(
+                "", tk.END,
+                values=(
+                    issued_date,
+                    issued_time,
+                    log.get("key", ""),
+                    log.get("key_picker", {}).get("name", ""),
+                    log.get("key_picker", {}).get("employee_ID", ""),
+                    log.get("key_picker", {}).get("department", ""),
+                    log.get("key_picker", {}).get("designation", ""),
+                    log.get("purpose", ""),
+                    log.get("key_issuer", {}).get("name", ""),
+                    log.get("key_issuer", {}).get("employee_ID", ""),
+                    log.get("key_returner", {}).get("name", ""),
+                    log.get("key_returner", {}).get("employee_ID", ""),
+                    log.get("key_returner", {}).get("department", ""),
+                    log.get("key_returner", {}).get("designation", ""),
+                    log.get("key_receiver", {}).get("name", ""),
+                    log.get("key_receiver", {}).get("employee_ID", ""),
+                    returned_date,
+                    returned_time
+                ),
+                tags=(row_tag,)
+            )
+
+        self.current_offset += self.page_size
+
+    def load_more_past_logs(self, event=None):
+        """Check if more data should be loaded based on the scrollbar position."""
+        if self.logs_treeview.yview()[1] >= 0.95:  # If scrolled near the bottom
+            self.insert_past_logs()
 
     def load_export_data_tab(self):
         export_data_frame = ctk.CTkFrame(master=self.export_data_tab, fg_color=white, corner_radius=0)

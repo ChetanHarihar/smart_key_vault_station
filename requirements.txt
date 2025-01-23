@@ -4,3 +4,4 @@ pillow==11.1.0
 Adafruit-Blinka==8.51.0
 adafruit-circuitpython-pn532==2.4.3
 lgpio==0.2.2.0
+pytz==2024.2

@@ -10,7 +10,7 @@ white = "#FFFFFF"
 platinum = "#E5E4E2"
 
 
-def open_toplevel_window(toplevel_width, toplevel_height, title, color, message, button=None, callback_function=None):
+def open_toplevel_window(toplevel_width, toplevel_height, title, color, message, button=None, callback_function=None, set_focus=True):
         # Create a Toplevel window
         top_level = tk.Toplevel()  # Using Toplevel from tkinter
 
@@ -20,18 +20,20 @@ def open_toplevel_window(toplevel_width, toplevel_height, title, color, message,
         
         # Set the geometry of the Toplevel window (position + size)
         top_level.geometry(f"{toplevel_width}x{toplevel_height}+{position_left}+{position_top}")
+        top_level.title('')  # Removes the title
 
-        # Remove the close, minimize, and maximize buttons
-        top_level.overrideredirect(True)  # Removes window decorations (title bar, buttons)
-        
-        # Optionally prevent closing the window (X button)
-        top_level.protocol("WM_DELETE_WINDOW", lambda: None)
+        if set_focus:
+            # Remove the close, minimize, and maximize buttons
+            top_level.overrideredirect(True)  # Removes window decorations (title bar, buttons)
+            
+            # Optionally prevent closing the window (X button)
+            top_level.protocol("WM_DELETE_WINDOW", lambda: None)
+
+            # Add a border to the Toplevel window
+            top_level.configure(bg=platinum, bd=5, relief='groove')
         
         # Set window to be non-resizable
         top_level.resizable(False, False)
-
-        # Add a border to the Toplevel window
-        top_level.configure(bg=platinum, bd=5, relief='groove')
 
         # Focus on the Toplevel window
         top_level.focus_set()

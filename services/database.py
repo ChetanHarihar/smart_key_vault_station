@@ -161,7 +161,73 @@ def fetch_completed_logs(
         print(f"An unexpected error occurred: {ex}")
         return []
     
+# Function to check key availability
+def check_key_availability(
+    collection_name="log",
+    station_name: str = None,
+    keys: list = None,
+    projection = None
+) -> dict:
+    """
+    Checks the availability of keys for a given station and provides log data for unavailable keys.
+
+    Args:
+        collection_name (str): Name of the MongoDB collection.
+        station_name (str): Name of the station to filter logs.
+        keys (list): List of keys to check availability.
+
+    Returns:
+        dict: Dictionary with keys as input keys. If unavailable, the value is the log data; otherwise, None.
+    """
+    # Validate inputs
+    if not station_name:
+        raise ValueError("station_name is required.")
+    if not keys or not isinstance(keys, list):
+        raise ValueError("keys must be a non-empty list.")
+
+    # Base query to find 'On-going' logs for the given station and keys
+    query = {
+        "station": station_name,
+        "status": "On-going",
+        "key": {"$in": keys}
+    }
+
+    try:
+        # Connect to the database
+        db = get_db_connection()  # Replace with your database connection
+        collection = db[collection_name]
+
+        # Fetch matching documents (retrieve full log data for unavailable keys)
+        ongoing_logs_cursor = collection.find(
+            query,
+            projection
+        )
+        
+        # Extract ongoing logs into a dictionary for quick lookup
+        ongoing_logs = {log["key"]: log for log in ongoing_logs_cursor}
+
+        # Build the result dictionary
+        result = {key: ongoing_logs.get(key, None) for key in keys}
+
+        return result
+
+    except PyMongoError as e:
+        print(f"An error occurred with the MongoDB operation: {e}")
+        return {key: None for key in keys}
+    except Exception as ex:
+        print(f"An unexpected error occurred: {ex}")
+        return {key: None for key in keys}
+    
 
 # Example usage
 if __name__ == "__main__":
-    pass
+    station_name = "Baiyappanahalli"
+    keys = ["SER", "TER", "DG"]
+
+    # Call the function
+    result = check_key_availability(
+        station_name=station_name,
+        keys=keys
+    )
+
+    print(result)

@@ -190,7 +190,7 @@ class MaintainerPanel(ctk.CTkFrame):
                 # retrieve keys without approval
                 pass
         else:
-            open_toplevel_window(toplevel_width=450, toplevel_height=200, title="Unable to proceed", color=red, message="Select a key and purpose", button="OK")
+            open_toplevel_window(toplevel_width=450, toplevel_height=200, title="Unable to proceed", color=red, message="Select a key and purpose", button1="OK")
 
     def disable_widgets(self):
         # Disable all checkboxes
@@ -216,10 +216,10 @@ class MaintainerPanel(ctk.CTkFrame):
                                      f"Department : {log_data.get("key_picker", {}).get("department", "")}\n" +
                                      f"Designation : {log_data.get("key_picker", {}).get("designation", "")}\n" +
                                      f"Contact : {log_data.get("key_picker", {}).get("contact_number", "")}\n" +
-                                     f"Issued date-time : {issued_date + '  ' + issued_time}", 
-                             button="Return",
-                             callback_function=None,
-                             set_focus=False
+                                     f"Issued date-time : {issued_date + '  ' + issued_time}",
+                             button1="Close",
+                             button2="Return",
+                             callback_function=None
                             )
 
     def exit_panel(self):

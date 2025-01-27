@@ -183,7 +183,7 @@ class StationControllerPanel(ctk.CTkFrame):
             self.disable_widgets()
             pass
         else:
-            open_toplevel_window(toplevel_width=450, toplevel_height=200, title="Unable to proceed", color=red, message="Select a key and purpose", button="OK")
+            open_toplevel_window(toplevel_width=450, toplevel_height=200, title="Unable to proceed", color=red, message="Select a key and purpose", button1="OK")
 
     def disable_widgets(self):
         # Disable all checkboxes
@@ -213,10 +213,10 @@ class StationControllerPanel(ctk.CTkFrame):
                                      f"Department : {log_data.get("key_picker", {}).get("department", "")}\n" +
                                      f"Designation : {log_data.get("key_picker", {}).get("designation", "")}\n" +
                                      f"Contact : {log_data.get("key_picker", {}).get("contact_number", "")}\n" +
-                                     f"Issued date-time : {issued_date + '  ' + issued_time}", 
-                             button="Return",
-                             callback_function=None,
-                             set_focus=False
+                                     f"Issued date-time : {issued_date + '  ' + issued_time}",
+                             button1="Close",
+                             button2="Return",
+                             callback_function=None
                             )
 
     def load_view_logs_tab(self):
@@ -382,7 +382,7 @@ if __name__ == "__main__":
     # Configure the root window
     root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
 
-    # root.overrideredirect(True)   # Enables full screen
+    root.overrideredirect(True)   # Enables full screen
 
     # Set CTk appearance mode
     ctk.set_appearance_mode("Light")

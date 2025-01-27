@@ -208,11 +208,11 @@ class StationControllerPanel(ctk.CTkFrame):
                              toplevel_height=400, 
                              title="On-going log", 
                              color=red, 
-                             message=f"Name : {log_data.get("key_picker", {}).get("name", "")}\n" + 
-                                     f"Employee ID : {log_data.get("key_picker", {}).get("employee_ID", "")}\n" + 
-                                     f"Department : {log_data.get("key_picker", {}).get("department", "")}\n" +
-                                     f"Designation : {log_data.get("key_picker", {}).get("designation", "")}\n" +
-                                     f"Contact : {log_data.get("key_picker", {}).get("contact_number", "")}\n" +
+                             message=f"Name : {log_data.get('key_picker', {}).get('name', '')}\n" + \
+                                     f"Employee ID : {log_data.get('key_picker', {}).get('employee_ID', '')}\n" + \
+                                     f"Department : {log_data.get('key_picker', {}).get('department', '')}\n" + \
+                                     f"Designation : {log_data.get('key_picker', {}).get('designation', '')}\n" + \
+                                     f"Contact : {log_data.get('key_picker', {}).get('contact_number', '')}\n" + \
                                      f"Issued date-time : {issued_date + '  ' + issued_time}",
                              button1="Close",
                              button2="Return",

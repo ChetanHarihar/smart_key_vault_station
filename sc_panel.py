@@ -90,11 +90,11 @@ class StationControllerPanel(ctk.CTkFrame):
         designation_var = ctk.StringVar(value=self.sc_data['designation'])
         ctk.CTkEntry(master=self.maintainer_widget_frame, textvariable=designation_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=3, column=1, padx=5, pady=15)
 
-        key_select_frame = ctk.CTkFrame(master=parent_frame, fg_color=white, corner_radius=0)
-        key_select_frame.pack(side='right', padx=(0,150))
+        self.key_select_frame = ctk.CTkFrame(master=parent_frame, fg_color=white, corner_radius=0)
+        self.key_select_frame.pack(side='right', padx=(0,150))
 
         # select key label
-        ctk.CTkLabel(master=key_select_frame, text="Select key:", font=("Arial", 24, 'bold')).grid(row=0, column=0, columnspan=2, padx=5, pady=15, sticky='nsew')
+        ctk.CTkLabel(master=self.key_select_frame, text="Select key:", font=("Arial", 24, 'bold')).grid(row=0, column=0, columnspan=2, padx=5, pady=15, sticky='nsew')
 
         # retrieve keys available for the department
         self.available_keys = KEY_MAP.get('All', [])
@@ -109,7 +109,7 @@ class StationControllerPanel(ctk.CTkFrame):
             
         # Create a checkbox for each room and pack it
         checkbox = ctk.CTkCheckBox(
-            master=key_select_frame,
+            master=self.key_select_frame,
             text='Select all',
             variable=self.key_checkbox_vars['Select all'],  # Linked to the checkbox state
             onvalue=True,
@@ -127,13 +127,24 @@ class StationControllerPanel(ctk.CTkFrame):
         self.info_btn_image = self.info_btn_image.resize((30, 30))  # Resize the image to fit the button
         self.info_btn_image_ctk = ctk.CTkImage(light_image=self.info_btn_image, dark_image=self.info_btn_image, size=(30, 30))
 
+        self.create_checkboxes()
+
+        # proceed button
+        self.proceed_button = ctk.CTkButton(master=self.manage_keys_tab, text="Proceed", font=("Arial", 24), width=180, height=50, fg_color=purple, command=self.on_proceed)
+        self.proceed_button.pack(pady=(10,30))
+
+    def create_checkboxes(self):
+        # check for the availability of the keys
+        self.key_availability_data = check_key_availability(station_name=STATION_NAME, keys=self.available_keys)
+        self.i_buttons = []
+
         for index, key in enumerate(self.available_keys, start=2):
             # Create a BooleanVar to store the state of the checkbox
             self.key_checkbox_vars[key] = ctk.BooleanVar()
             
             # Create a checkbox for each room and pack it
             checkbox = ctk.CTkCheckBox(
-                master=key_select_frame,
+                master=self.key_select_frame,
                 text=key,
                 variable=self.key_checkbox_vars[key],  # Linked to the checkbox state
                 onvalue=True,
@@ -145,17 +156,20 @@ class StationControllerPanel(ctk.CTkFrame):
             # Store the checkbox reference in the dictionary
             self.checkboxes[key] = checkbox
 
-            ctk.CTkButton(master=key_select_frame, image=self.info_btn_image_ctk, text='', font=("Arial", 22), width=0, fg_color='transparent', hover=False, command=lambda:print("Clicked info!")).grid(row=index, column=1, padx=20, pady=12, sticky='w')
-
-        # proceed button
-        self.proceed_button = ctk.CTkButton(master=self.manage_keys_tab, text="Proceed", font=("Arial", 24), width=180, height=50, fg_color=purple, command=self.on_proceed)
-        self.proceed_button.pack(pady=(10,30))
+            # if the key is unavailable disable it and insert the info button
+            if self.key_availability_data[key]:
+                checkbox.configure(state="disabled")
+                i_button = ctk.CTkButton(master=self.key_select_frame, image=self.info_btn_image_ctk, text='', font=("Arial", 22), width=0, fg_color='transparent', hover=False, command=lambda k=key: self.show_ongoing_popup(log_data=self.key_availability_data[k]))
+                i_button.grid(row=index, column=1, padx=20, pady=12, sticky='w')
+                self.i_buttons.append(i_button) 
 
     def select_all_checkbox(self):
         state = self.key_checkbox_vars['Select all'].get()
         for key, key_var in self.key_checkbox_vars.items():
             if key != 'Select all':  # Don't modify the 'Select all' checkbox itself
-                key_var.set(state)  # Set the state of the individual checkboxes
+                checkbox = self.checkboxes[key]  # Access the actual checkbox widget
+                if checkbox.cget("state") != "disabled":  # Only modify if the checkbox is enabled
+                    key_var.set(state)  # Set the state of the individual checkboxes
 
     def on_proceed(self):
         # get all the selected keys
@@ -174,12 +188,36 @@ class StationControllerPanel(ctk.CTkFrame):
     def disable_widgets(self):
         # Disable all checkboxes
         for checkbox in self.checkboxes.values():
-            checkbox.configure(state="disabled")
+            if checkbox._state != "disabled":
+                checkbox.configure(state="disabled")
+        # Disable i buttons
+        for btn in self.i_buttons:
+            btn.configure(state="disabled")
+        # Disable proceed button
+        self.proceed_button.configure(state="disabled")
 
     def enable_widgets(self):
-    # Ensable all checkboxes
-        for checkbox in self.checkboxes.values():
-            checkbox.configure(state="normal")
+        # Ensable required checkboxes
+        # Enable proceed button
+        self.proceed_button.configure(state="normal")
+
+    def show_ongoing_popup(self, log_data):
+        issued_date = log_data.get('issued_timestamp',"").strftime("%d-%m-%Y")
+        issued_time = log_data.get('issued_timestamp',"").strftime("%H:%M")
+        open_toplevel_window(toplevel_width=700, 
+                             toplevel_height=400, 
+                             title="On-going log", 
+                             color=red, 
+                             message=f"Name : {log_data.get("key_picker", {}).get("name", "")}\n" + 
+                                     f"Employee ID : {log_data.get("key_picker", {}).get("employee_ID", "")}\n" + 
+                                     f"Department : {log_data.get("key_picker", {}).get("department", "")}\n" +
+                                     f"Designation : {log_data.get("key_picker", {}).get("designation", "")}\n" +
+                                     f"Contact : {log_data.get("key_picker", {}).get("contact_number", "")}\n" +
+                                     f"Issued date-time : {issued_date + '  ' + issued_time}", 
+                             button="Return",
+                             callback_function=None,
+                             set_focus=False
+                            )
 
     def load_view_logs_tab(self):
         self.view_logs_treeview_frame = tk.Frame(self.view_logs_tab, bg="white")
@@ -195,7 +233,7 @@ class StationControllerPanel(ctk.CTkFrame):
         self.logs_treeview = TreeView(self.view_logs_treeview_frame)
 
         # Create columns
-        self.logs_treeview["columns"] = ("issued_date", "issued_time", "key", "picker_employee_name", "picker_employee_ID", "picker_departmant", "picker_designation", "purpose", "issuer_sc_name", "issuer_sc_ID", "returner_employee_name", "returner_employee_ID", "returner_departmant", "returner_designation", "receiver_sc_name", "receiver_sc_ID", "returned_date", "returned_time")
+        self.logs_treeview["columns"] = ("issued_date", "issued_time", "key", "picker_employee_name", "picker_employee_ID", "picker_departmant", "picker_designation", "picker_contact", "purpose", "issuer_sc_name", "issuer_sc_ID", "returner_employee_name", "returner_employee_ID", "returner_departmant", "returner_designation", "returner_contact", "receiver_sc_name", "receiver_sc_ID", "returned_date", "returned_time")
         self.logs_treeview.column("#0", width=0, stretch=tk.NO)  # Hide the item_tree column
         self.logs_treeview.column("issued_date", width=160, anchor=tk.CENTER, stretch=tk.NO)
         self.logs_treeview.column("issued_time", width=160, anchor=tk.CENTER, stretch=tk.NO)
@@ -204,6 +242,7 @@ class StationControllerPanel(ctk.CTkFrame):
         self.logs_treeview.column("picker_employee_ID", width=180, anchor=tk.CENTER, stretch=tk.NO)
         self.logs_treeview.column("picker_departmant", width=300, anchor=tk.CENTER, stretch=tk.NO)
         self.logs_treeview.column("picker_designation", width=300, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("picker_contact", width=200, anchor=tk.CENTER, stretch=tk.NO)
         self.logs_treeview.column("purpose", width=180, anchor=tk.CENTER, stretch=tk.NO)
         self.logs_treeview.column("issuer_sc_name", width=350, anchor=tk.CENTER, stretch=tk.NO)
         self.logs_treeview.column("issuer_sc_ID", width=180, anchor=tk.CENTER, stretch=tk.NO)
@@ -211,6 +250,7 @@ class StationControllerPanel(ctk.CTkFrame):
         self.logs_treeview.column("returner_employee_ID", width=180, anchor=tk.CENTER, stretch=tk.NO)
         self.logs_treeview.column("returner_departmant", width=300, anchor=tk.CENTER, stretch=tk.NO)
         self.logs_treeview.column("returner_designation", width=300, anchor=tk.CENTER, stretch=tk.NO)
+        self.logs_treeview.column("returner_contact", width=200, anchor=tk.CENTER, stretch=tk.NO)
         self.logs_treeview.column("receiver_sc_name", width=350, anchor=tk.CENTER, stretch=tk.NO)
         self.logs_treeview.column("receiver_sc_ID", width=180, anchor=tk.CENTER, stretch=tk.NO)
         self.logs_treeview.column("returned_date", width=160, anchor=tk.CENTER, stretch=tk.NO)
@@ -224,6 +264,7 @@ class StationControllerPanel(ctk.CTkFrame):
         self.logs_treeview.heading("picker_employee_ID", text="Employee ID")
         self.logs_treeview.heading("picker_departmant", text="Departmant")
         self.logs_treeview.heading("picker_designation", text="Designation")
+        self.logs_treeview.heading("picker_contact", text="Contact")
         self.logs_treeview.heading("purpose", text="Purpose")
         self.logs_treeview.heading("issuer_sc_name", text="SC name")
         self.logs_treeview.heading("issuer_sc_ID", text="SC ID")
@@ -231,6 +272,7 @@ class StationControllerPanel(ctk.CTkFrame):
         self.logs_treeview.heading("returner_employee_ID", text="Employee ID")
         self.logs_treeview.heading("returner_departmant", text="Departmant")
         self.logs_treeview.heading("returner_designation", text="Designation")
+        self.logs_treeview.heading("returner_contact", text="Contact")
         self.logs_treeview.heading("receiver_sc_name", text="SC name")
         self.logs_treeview.heading("receiver_sc_ID", text="SC ID")
         self.logs_treeview.heading("returned_date", text="Returned Date")
@@ -275,6 +317,7 @@ class StationControllerPanel(ctk.CTkFrame):
                     log.get("key_picker", {}).get("employee_ID", ""),
                     log.get("key_picker", {}).get("department", ""),
                     log.get("key_picker", {}).get("designation", ""),
+                    log.get("key_picker", {}).get("contact_number", ""),
                     log.get("purpose", ""),
                     log.get("key_issuer", {}).get("name", ""),
                     log.get("key_issuer", {}).get("employee_ID", ""),
@@ -282,6 +325,7 @@ class StationControllerPanel(ctk.CTkFrame):
                     log.get("key_returner", {}).get("employee_ID", ""),
                     log.get("key_returner", {}).get("department", ""),
                     log.get("key_returner", {}).get("designation", ""),
+                    log.get("key_returner", {}).get("contact_number", ""),
                     log.get("key_receiver", {}).get("name", ""),
                     log.get("key_receiver", {}).get("employee_ID", ""),
                     returned_date,

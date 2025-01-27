@@ -10,7 +10,7 @@ white = "#FFFFFF"
 platinum = "#E5E4E2"
 
 
-def open_toplevel_window(toplevel_width, toplevel_height, title, color, message, button=None, callback_function=None, set_focus=True):
+def open_toplevel_window(toplevel_width, toplevel_height, title, color, message, button1=None, button2=None, callback_function=None):
         # Create a Toplevel window
         top_level = tk.Toplevel()  # Using Toplevel from tkinter
 
@@ -20,17 +20,15 @@ def open_toplevel_window(toplevel_width, toplevel_height, title, color, message,
         
         # Set the geometry of the Toplevel window (position + size)
         top_level.geometry(f"{toplevel_width}x{toplevel_height}+{position_left}+{position_top}")
-        top_level.title('')  # Removes the title
 
-        if set_focus:
-            # Remove the close, minimize, and maximize buttons
-            top_level.overrideredirect(True)  # Removes window decorations (title bar, buttons)
+        # Remove the close, minimize, and maximize buttons
+        top_level.overrideredirect(True)  # Removes window decorations (title bar, buttons)
             
-            # Optionally prevent closing the window (X button)
-            top_level.protocol("WM_DELETE_WINDOW", lambda: None)
+        # Optionally prevent closing the window (X button)
+        top_level.protocol("WM_DELETE_WINDOW", lambda: None)
 
-            # Add a border to the Toplevel window
-            top_level.configure(bg=platinum, bd=5, relief='groove')
+        # Add a border to the Toplevel window
+        top_level.configure(bg=platinum, bd=5, relief='groove')
         
         # Set window to be non-resizable
         top_level.resizable(False, False)
@@ -49,10 +47,20 @@ def open_toplevel_window(toplevel_width, toplevel_height, title, color, message,
         msg_label.pack(pady=30)
 
         def destroy_toplevel():
+            top_level.destroy()
+
+        def callback_and_destroy():
             if callback_function:
                 callback_function()
             top_level.destroy()
 
-        if button:
-            button = ctk.CTkButton(top_level, text=button, font=("Arial", 22, 'bold'), fg_color=purple, height=40, hover=False, command=destroy_toplevel)
-            button.pack(pady=10)
+        btn_frame = ctk.CTkFrame(top_level, fg_color='transparent')
+        btn_frame.pack(pady=10)
+
+        if button1:
+            button1 = ctk.CTkButton(btn_frame, text=button1, font=("Arial", 22, 'bold'), fg_color=purple, height=40, hover=False, command=destroy_toplevel)
+            button1.pack(side='left', padx=20)
+
+        if button2:
+            button2 = ctk.CTkButton(btn_frame, text=button2, font=("Arial", 22, 'bold'), fg_color=purple, height=40, hover=False, command=callback_and_destroy)
+            button2.pack(side='left', padx=20)

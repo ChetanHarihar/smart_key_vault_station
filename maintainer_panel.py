@@ -1,6 +1,8 @@
 from settings import *
 from gui_components.toplevel import open_toplevel_window
 from services.database import *
+from services.nfc_reader import read_nfc_tag
+import threading
 
 
 class MaintainerPanel(ctk.CTkFrame):
@@ -186,6 +188,9 @@ class MaintainerPanel(ctk.CTkFrame):
                 # pack sc scan label
                 self.sc_scan_label = ctk.CTkLabel(master=self, text="Scan station controller card", font=("Arial", 30, 'bold'), text_color=green)
                 self.sc_scan_label.pack(pady=(10,30))
+                # scan for card and auth for sc card
+                start_sc_scan = threading.Thread(target=self.scan_sc_card, daemon=True)
+                start_sc_scan.start()
             elif self.purpose_selected == 'Emergency':
                 # retrieve keys without approval
                 pass
@@ -211,17 +216,41 @@ class MaintainerPanel(ctk.CTkFrame):
                              toplevel_height=400, 
                              title="On-going log", 
                              color=red, 
-                             message=f"Name : {log_data.get("key_picker", {}).get("name", "")}\n" + 
-                                     f"Employee ID : {log_data.get("key_picker", {}).get("employee_ID", "")}\n" + 
-                                     f"Department : {log_data.get("key_picker", {}).get("department", "")}\n" +
-                                     f"Designation : {log_data.get("key_picker", {}).get("designation", "")}\n" +
-                                     f"Contact : {log_data.get("key_picker", {}).get("contact_number", "")}\n" +
+                             message=f"Name : {log_data.get('key_picker', {}).get('name', '')}\n" + \
+                                     f"Employee ID : {log_data.get('key_picker', {}).get('employee_ID', '')}\n" + \
+                                     f"Department : {log_data.get('key_picker', {}).get('department', '')}\n" + \
+                                     f"Designation : {log_data.get('key_picker', {}).get('designation', '')}\n" + \
+                                     f"Contact : {log_data.get('key_picker', {}).get('contact_number', '')}\n" + \
                                      f"Issued date-time : {issued_date + '  ' + issued_time}",
                              button1="Close",
                              button2="Return",
                              callback_function=None
                             )
 
+    def scan_sc_card(self):
+        while True:
+            try:
+                # Read the UID from the NFC reader
+                uid = read_nfc_tag()
+            except Exception as e:
+                print(f"Error reading RFID tag: {e}")
+            finally:
+                # Ensure the thread terminates after reading the tag
+                print("RFID reading thread finished.")
+            # auth the card
+            card_data = auth_user(UID=uid)
+            role = card_data.get('role', '')
+            station = card_data.get('station', '')
+            if card_data:
+                if role == 'sc':
+                    print("SC auth done")
+                    return
+                elif (role == 'mastercard') and (station == STATION_NAME):
+                    print("Mastercard auth done")
+                    return
+                else:
+                    pass
+            
     def exit_panel(self):
         self.destroy()
         self.login_panel_callback()
@@ -244,7 +273,7 @@ if __name__ == "__main__":
                         "employee_ID": "001",
                         "CSC": "13003297333",
                         "UID": "047F4BDA9C5A80",
-                        "department": "Signalling",
+                        "department": "Fire",
                         "designation": "Maintainer",
                         "contact_number": "9739090029",
                         "role": "maintainer",

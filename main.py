@@ -45,6 +45,9 @@ class App(ctk.CTk):
                 self.load_maintainer_panel()
             elif self.employee_data['role'].lower() in ["sc", "executive"]:
                 self.load_sc_panel()
+            else:
+                # show invalid card pop-up
+                self.load_login_panel()
         else:
             # show invalid card pop-up
             self.load_login_panel()

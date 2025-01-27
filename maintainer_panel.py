@@ -1,5 +1,6 @@
 from settings import *
 from gui_components.toplevel import open_toplevel_window
+from services.database import *
 
 
 class MaintainerPanel(ctk.CTkFrame):
@@ -66,11 +67,11 @@ class MaintainerPanel(ctk.CTkFrame):
         self.selection_frame = ctk.CTkFrame(master=parent_frame, fg_color=white, corner_radius=0)
         self.selection_frame.pack(side='right')
 
-        key_select_frame = ctk.CTkFrame(master=self.selection_frame, fg_color=white, corner_radius=0)
-        key_select_frame.pack(side='top')
+        self.key_select_frame = ctk.CTkFrame(master=self.selection_frame, fg_color=white, corner_radius=0)
+        self.key_select_frame.pack(side='top')
 
         # select key label
-        ctk.CTkLabel(master=key_select_frame, text="Select key:", font=("Arial", 24, 'bold')).grid(row=0, column=0, columnspan=2, padx=5, pady=15, sticky='nsew')
+        ctk.CTkLabel(master=self.key_select_frame, text="Select key:", font=("Arial", 24, 'bold')).grid(row=0, column=0, columnspan=2, padx=5, pady=15, sticky='nsew')
 
         # retrieve keys available for the department
         self.available_keys = KEY_MAP.get(self.maintainer_data['department'], [])
@@ -85,7 +86,7 @@ class MaintainerPanel(ctk.CTkFrame):
             
         # Create a checkbox for each room and pack it
         checkbox = ctk.CTkCheckBox(
-            master=key_select_frame,
+            master=self.key_select_frame,
             text='Select all',
             variable=self.key_checkbox_vars['Select all'],  # Linked to the checkbox state
             onvalue=True,
@@ -103,25 +104,8 @@ class MaintainerPanel(ctk.CTkFrame):
         self.info_btn_image = self.info_btn_image.resize((30, 30))  # Resize the image to fit the button
         self.info_btn_image_ctk = ctk.CTkImage(light_image=self.info_btn_image, dark_image=self.info_btn_image, size=(30, 30))
 
-        for index, key in enumerate(self.available_keys, start=2):
-            # Create a BooleanVar to store the state of the checkbox
-            self.key_checkbox_vars[key] = ctk.BooleanVar()
-            
-            # Create a checkbox for each room and pack it
-            checkbox = ctk.CTkCheckBox(
-                master=key_select_frame,
-                text=key,
-                variable=self.key_checkbox_vars[key],  # Linked to the checkbox state
-                onvalue=True,
-                offvalue=False,
-                font=("Arial", 26)
-            )
-            checkbox.grid(row=index, column=0, padx=20, pady=12, sticky='w')
-
-            # Store the checkbox reference in the dictionary
-            self.checkboxes[key] = checkbox
-
-            ctk.CTkButton(master=key_select_frame, image=self.info_btn_image_ctk, text='', font=("Arial", 22), width=0, fg_color='transparent', hover=False, command=lambda:print("Clicked info!")).grid(row=index, column=1, padx=20, pady=12, sticky='w')
+        # function to create the checkboxes
+        self.create_checkboxes()
 
         # frame to hold purpose widgets
         purpose_select_frame = ctk.CTkFrame(master=self.selection_frame, fg_color=white, corner_radius=0)
@@ -140,11 +124,43 @@ class MaintainerPanel(ctk.CTkFrame):
         self.proceed_button = ctk.CTkButton(master=self, text="Proceed", font=("Arial", 24), width=180, height=50, fg_color=purple, command=self.on_proceed)
         self.proceed_button.pack(pady=(0,30))
 
+    def create_checkboxes(self):
+        # check for the availability of the keys
+        self.key_availability_data = check_key_availability(station_name=STATION_NAME, keys=self.available_keys)
+        self.i_buttons = []
+
+        for index, key in enumerate(self.available_keys, start=2):
+            # Create a BooleanVar to store the state of the checkbox
+            self.key_checkbox_vars[key] = ctk.BooleanVar()
+            
+            # Create a checkbox for each room and pack it
+            checkbox = ctk.CTkCheckBox(
+                master=self.key_select_frame,
+                text=key,
+                variable=self.key_checkbox_vars[key],  # Linked to the checkbox state
+                onvalue=True,
+                offvalue=False,
+                font=("Arial", 26)
+            )
+            checkbox.grid(row=index, column=0, padx=20, pady=12, sticky='w')
+
+            # Store the checkbox reference in the dictionary
+            self.checkboxes[key] = checkbox
+
+            # if the key is unavailable disable it and insert the info button
+            if self.key_availability_data[key]:
+                checkbox.configure(state="disabled")
+                i_button = ctk.CTkButton(master=self.key_select_frame, image=self.info_btn_image_ctk, text='', font=("Arial", 22), width=0, fg_color='transparent', hover=False, command=lambda k=key: self.show_ongoing_popup(log_data=self.key_availability_data[k]))
+                i_button.grid(row=index, column=1, padx=20, pady=12, sticky='w')
+                self.i_buttons.append(i_button) 
+
     def select_all_checkbox(self):
         state = self.key_checkbox_vars['Select all'].get()
         for key, key_var in self.key_checkbox_vars.items():
             if key != 'Select all':  # Don't modify the 'Select all' checkbox itself
-                key_var.set(state)  # Set the state of the individual checkboxes
+                checkbox = self.checkboxes[key]  # Access the actual checkbox widget
+                if checkbox.cget("state") != "disabled":  # Only modify if the checkbox is enabled
+                    key_var.set(state)  # Set the state of the individual checkboxes
 
     def on_purpose_select(self, purpose):
         self.purpose_selected = purpose
@@ -179,10 +195,32 @@ class MaintainerPanel(ctk.CTkFrame):
     def disable_widgets(self):
         # Disable all checkboxes
         for checkbox in self.checkboxes.values():
-            checkbox.configure(state="disabled")
+            if checkbox._state != "disabled":
+                checkbox.configure(state="disabled")
+        # Disable i buttons
+        for btn in self.i_buttons:
+            btn.configure(state="disabled")
         # Disable purpose buttons
         self.maintainance_btn.configure(state="disabled")
         self.emergency_btn.configure(state="disabled")
+
+    def show_ongoing_popup(self, log_data):
+        issued_date = log_data.get('issued_timestamp',"").strftime("%d-%m-%Y")
+        issued_time = log_data.get('issued_timestamp',"").strftime("%H:%M")
+        open_toplevel_window(toplevel_width=700, 
+                             toplevel_height=400, 
+                             title="On-going log", 
+                             color=red, 
+                             message=f"Name : {log_data.get("key_picker", {}).get("name", "")}\n" + 
+                                     f"Employee ID : {log_data.get("key_picker", {}).get("employee_ID", "")}\n" + 
+                                     f"Department : {log_data.get("key_picker", {}).get("department", "")}\n" +
+                                     f"Designation : {log_data.get("key_picker", {}).get("designation", "")}\n" +
+                                     f"Contact : {log_data.get("key_picker", {}).get("contact_number", "")}\n" +
+                                     f"Issued date-time : {issued_date + '  ' + issued_time}", 
+                             button="Return",
+                             callback_function=None,
+                             set_focus=False
+                            )
 
     def exit_panel(self):
         self.destroy()
@@ -206,7 +244,7 @@ if __name__ == "__main__":
                         "employee_ID": "001",
                         "CSC": "13003297333",
                         "UID": "047F4BDA9C5A80",
-                        "department": "Fire",
+                        "department": "Signalling",
                         "designation": "Maintainer",
                         "contact_number": "9739090029",
                         "role": "maintainer",

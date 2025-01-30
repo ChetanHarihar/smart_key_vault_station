@@ -37,8 +37,8 @@ class ReturnPanel(ctk.CTkFrame):
 
         # employee name
         ctk.CTkLabel(master=log_data_frame, text="Key holder name:", font=("Arial", 24, 'bold')).grid(row=0, column=0, padx=5, pady=15, sticky='e')
-        ID_var = ctk.StringVar(value=self.log_data.get('key_picker', {}).get('name', ''))
-        ctk.CTkEntry(master=log_data_frame, textvariable=ID_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=0, column=1, padx=5, pady=15)
+        name_var = ctk.StringVar(value=self.log_data.get('key_picker', {}).get('name', ''))
+        ctk.CTkEntry(master=log_data_frame, textvariable=name_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=0, column=1, padx=5, pady=15)
 
         # employee ID
         ctk.CTkLabel(master=log_data_frame, text="Key holder ID:", font=("Arial", 24, 'bold')).grid(row=1, column=0, padx=5, pady=15, sticky='e')
@@ -47,8 +47,8 @@ class ReturnPanel(ctk.CTkFrame):
 
         # key 
         ctk.CTkLabel(master=log_data_frame, text="Issued key:", font=("Arial", 24, 'bold')).grid(row=2, column=0, padx=5, pady=15, sticky='e')
-        name_var = ctk.StringVar(value=self.log_data.get('key', ''))
-        ctk.CTkEntry(master=log_data_frame, textvariable=name_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=2, column=1, padx=5, pady=15)
+        key_var = ctk.StringVar(value=self.log_data.get('key', ''))
+        ctk.CTkEntry(master=log_data_frame, textvariable=key_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=2, column=1, padx=5, pady=15)
 
         # Convert to datetime object
         dt = datetime.fromisoformat(self.log_data.get('issued_timestamp', {}).get('$date', ''))
@@ -57,18 +57,28 @@ class ReturnPanel(ctk.CTkFrame):
         time = dt.strftime("%H:%M")
        
         ctk.CTkLabel(master=log_data_frame, text="Issued date-time:", font=("Arial", 24, 'bold')).grid(row=3, column=0, padx=5, pady=15, sticky='e')
-        name_var = ctk.StringVar(value=date + '  ' + time)
-        ctk.CTkEntry(master=log_data_frame, textvariable=name_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=3, column=1, padx=5, pady=15)
+        dt_var = ctk.StringVar(value=date + '  ' + time)
+        ctk.CTkEntry(master=log_data_frame, textvariable=dt_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=3, column=1, padx=5, pady=15)
 
-        # SC name
-        ctk.CTkLabel(master=log_data_frame, text="Issuer name:", font=("Arial", 24, 'bold')).grid(row=4, column=0, padx=5, pady=15, sticky='e')
-        designation_var = ctk.StringVar(value=self.log_data.get('key_issuer', {}).get('name', ''))
-        ctk.CTkEntry(master=log_data_frame, textvariable=designation_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=4, column=1, padx=5, pady=15)
+        # check for the role
+        role = self.log_data.get('key_issuer', {}).get('role','') 
 
-        # SC ID
-        ctk.CTkLabel(master=log_data_frame, text="Issuer ID:", font=("Arial", 24, 'bold')).grid(row=5, column=0, padx=5, pady=15, sticky='e')
-        designation_var = ctk.StringVar(value=self.log_data.get('key_picker', {}).get('employee_ID', ''))
-        ctk.CTkEntry(master=log_data_frame, textvariable=designation_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=5, column=1, padx=5, pady=15)
+        if role == 'mastercard':
+            # mastercard label
+            ctk.CTkLabel(master=log_data_frame, text="Issued by:", font=("Arial", 24, 'bold')).grid(row=4, column=0, padx=5, pady=15, sticky='e')
+            name_var = ctk.StringVar(value=role)
+            ctk.CTkEntry(master=log_data_frame, textvariable=name_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=4, column=1, padx=5, pady=15)
+
+        else:
+            # SC name
+            ctk.CTkLabel(master=log_data_frame, text="Issuer name:", font=("Arial", 24, 'bold')).grid(row=4, column=0, padx=5, pady=15, sticky='e')
+            name_var = ctk.StringVar(value=self.log_data.get('key_issuer', {}).get('name', ''))
+            ctk.CTkEntry(master=log_data_frame, textvariable=name_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=4, column=1, padx=5, pady=15)
+
+            # SC ID
+            ctk.CTkLabel(master=log_data_frame, text="Issuer ID:", font=("Arial", 24, 'bold')).grid(row=5, column=0, padx=5, pady=15, sticky='e')
+            designation_var = ctk.StringVar(value=self.log_data.get('key_picker', {}).get('employee_ID', ''))
+            ctk.CTkEntry(master=log_data_frame, textvariable=designation_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=5, column=1, padx=5, pady=15)
 
         # create checkbox and return button
         self.return_var = tk.BooleanVar()

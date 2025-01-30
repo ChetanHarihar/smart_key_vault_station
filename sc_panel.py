@@ -183,7 +183,7 @@ class StationControllerPanel(ctk.CTkFrame):
             self.disable_widgets()
             pass
         else:
-            open_toplevel_window(toplevel_width=450, toplevel_height=200, title="Unable to proceed", color=red, message="Select a key and purpose", button1="OK")
+            open_toplevel_window(toplevel_width=450, toplevel_height=200, title="Unable to proceed", color=red, message="Select a key", button1="OK")
 
     def disable_widgets(self):
         # Disable all checkboxes
@@ -304,6 +304,20 @@ class StationControllerPanel(ctk.CTkFrame):
             returned_date = log.get('returned_timestamp',"").strftime("%d-%m-%Y")
             returned_time = log.get('returned_timestamp',"").strftime("%H:%M")
 
+            issuer_role = log.get("key_issuer", {}).get("role", "")
+
+            if issuer_role == 'mastercard':
+                issuer_name = 'mastercard'
+            else:
+                issuer_name = log.get("key_issuer", {}).get("name", "")
+
+            receiver_role = log.get("key_receiver", {}).get("role", "")
+
+            if receiver_role == 'mastercard':
+                receiver_name = 'mastercard'
+            else:
+                receiver_name = log.get("key_receiver", {}).get("name", "")
+
             # Determine the tag for row coloring
             row_tag = 'evenrow' if (self.current_offset + index) % 2 == 0 else 'oddrow'
 
@@ -319,14 +333,14 @@ class StationControllerPanel(ctk.CTkFrame):
                     log.get("key_picker", {}).get("designation", ""),
                     log.get("key_picker", {}).get("contact_number", ""),
                     log.get("purpose", ""),
-                    log.get("key_issuer", {}).get("name", ""),
+                    issuer_name,
                     log.get("key_issuer", {}).get("employee_ID", ""),
                     log.get("key_returner", {}).get("name", ""),
                     log.get("key_returner", {}).get("employee_ID", ""),
                     log.get("key_returner", {}).get("department", ""),
                     log.get("key_returner", {}).get("designation", ""),
                     log.get("key_returner", {}).get("contact_number", ""),
-                    log.get("key_receiver", {}).get("name", ""),
+                    receiver_name,
                     log.get("key_receiver", {}).get("employee_ID", ""),
                     returned_date,
                     returned_time

@@ -1,12 +1,14 @@
 from settings import *
 from datetime import datetime
+from services.database import *
 
 
 class ReturnPanel(ctk.CTkFrame):
-    def __init__(self, master=None, log_data=None, **kwargs):
+    def __init__(self, master=None, log_data=None, login_panel_callback=None, **kwargs):
         super().__init__(master, **kwargs)
         self.root = master
         self.log_data = log_data
+        self.login_panel_callback = login_panel_callback
         # Configure the frame dimensions and color
         self.configure(fg_color="white", width=WINDOW_WIDTH, height=WINDOW_HEIGHT)
         self.pack_propagate(False)
@@ -51,10 +53,11 @@ class ReturnPanel(ctk.CTkFrame):
         ctk.CTkEntry(master=log_data_frame, textvariable=key_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=2, column=1, padx=5, pady=15)
 
         # Convert to datetime object
-        dt = datetime.fromisoformat(self.log_data.get('issued_timestamp', {}).get('$date', ''))
+        # dt = datetime.fromisoformat(self.log_data.get('issued_timestamp', {}).get('$date', ''))
+        dt = self.log_data.get('issued_timestamp')
         
         date = dt.strftime("%d-%m-%Y")
-        time = dt.strftime("%H:%M")
+        time = dt.strftime("%H:%M") 
        
         ctk.CTkLabel(master=log_data_frame, text="Issued date-time:", font=("Arial", 24, 'bold')).grid(row=3, column=0, padx=5, pady=15, sticky='e')
         dt_var = ctk.StringVar(value=date + '  ' + time)
@@ -91,11 +94,12 @@ class ReturnPanel(ctk.CTkFrame):
         self.return_button.pack(pady=(20,20))
 
     def on_return(self):
+        # if checkbox in checked return key
         pass
 
     def exit_panel(self):
         self.destroy()
-        root.destroy()
+        self.login_panel_callback()
 
 
 if __name__ == "__main__":
@@ -112,48 +116,40 @@ if __name__ == "__main__":
 
     # example log data
     log_data = {
-                "_id": {
-                    "$oid": "678eea34ce2d6854b41ffa0d"
-                },
-                "status": "On-going",
-                "station": "Baiyappanahalli",
-                "line": "Purple",
-                "key": "SER",
-                "reach": "Reach-1",
-                "purpose": "Maintenance",
-                "key_picker": {
-                    "_id": {
-                    "$oid": "678739760995dc0b1645393c"
-                    },
-                    "name": "Chetan S Harihar",
-                    "CSC": "13003297333",
-                    "UID": "047F4BDA9C5A80",
-                    "department": "Signalling",
-                    "designation": "Maintainer",
-                    "contact_number": "9739090029",
-                    "role": "maintainer",
-                    "active_status": True,
-                    "reach": "Reach-1",
-                    "employee_ID": "001"
-                },
-                "issued_timestamp": {
-                    "$date": "2025-01-04T20:00:00.000Z"
-                },
-                "key_issuer": {
-                    "_id": {
-                    "$oid": "6787bd971dbc5343d0965489"
-                    },
-                    "name": "Ananth Kumar Shinde V",
-                    "CSC": "13008459607",
-                    "UID": "047B209A805C80",
-                    "designation": "Station Controller",
-                    "contact_number": "8073426219",
-                    "role": "sc",
-                    "active_status": True,
-                    "reach": "Reach-1",
-                    "employee_ID": "002"
-                }
-                }
+                "_id": ObjectId("679447699dc078204f141804"),
+        "status": "On-going",
+        "station": "Baiyappanahalli",
+        "line": "Purple",
+        "key": "S & T UPS",
+        "reach": "Reach-1",
+        "purpose": "Maintenance",
+        "key_picker": {
+            "_id": ObjectId("678e23050508d491ea5b7814"),
+            "name": "Mr. AK",
+            "CSC": "12031215051",
+            "UID": "04433872F77680",
+            "department": "E & M",
+            "designation": "Maintainer",
+            "contact_number": "8073426219",
+            "role": "maintainer",
+            "active_status": True,
+            "reach": "Reach-1",
+            "employee_ID": "004"
+        },
+        "issued_timestamp": datetime(2025, 1, 24, 16, 40),
+        "key_issuer": {
+            "_id": ObjectId("6787bd971dbc5343d0965489"),
+            "name": "Ananth Kumar Shinde V",
+            "CSC": "13008459607",
+            "UID": "047B209A805C80",
+            "designation": "Station Controller",
+            "contact_number": "8073426219",
+            "role": "sc",
+            "active_status": True,
+            "reach": "Reach-1",
+            "employee_ID": "002"
+        }
+    }
 
     # Create instance of login panel
     frame = ReturnPanel(master=root, log_data=log_data)

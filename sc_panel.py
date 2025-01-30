@@ -197,10 +197,10 @@ class StationControllerPanel(ctk.CTkFrame):
         # Disable proceed button
         self.proceed_button.configure(state="disabled")
 
-    def enable_widgets(self):
-        # Ensable required checkboxes
-        # Enable proceed button
-        self.proceed_button.configure(state="normal")
+    def reload_key_pickup_page(self):
+        for widget in self.manage_keys_tab.winfo_children():
+            widget.destroy()
+        self.load_manage_keys_tab()
 
     def show_ongoing_popup(self, log_data):
         issued_date = log_data.get('issued_timestamp',"").strftime("%d-%m-%Y")
@@ -401,7 +401,7 @@ if __name__ == "__main__":
     # Configure the root window
     root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
 
-    root.overrideredirect(True)   # Enables full screen
+    # root.overrideredirect(True)   # Enables full screen
 
     # Set CTk appearance mode
     ctk.set_appearance_mode("Light")

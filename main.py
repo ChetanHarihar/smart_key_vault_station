@@ -2,6 +2,7 @@ from settings import *
 from login_panel import LoginPanel
 from maintainer_panel import MaintainerPanel
 from sc_panel import StationControllerPanel
+from return_panel import ReturnPanel
 from services.database import auth_user
 
 
@@ -25,12 +26,16 @@ class App(ctk.CTk):
         self.login_panel.pack(fill="both", expand=True)
 
     def load_maintainer_panel(self):
-        self.maintatiner_panel = MaintainerPanel(master=self, maintainer_data=self.employee_data, login_panel_callback=self.load_login_panel)
+        self.maintatiner_panel = MaintainerPanel(master=self, maintainer_data=self.employee_data, return_panel_callback=self.load_return_panel, login_panel_callback=self.load_login_panel)
         self.maintatiner_panel.pack(fill="both", expand=True)
 
     def load_sc_panel(self):
-        self.sc_panel = StationControllerPanel(master=self, sc_data=self.employee_data, login_panel_callback=self.load_login_panel)
+        self.sc_panel = StationControllerPanel(master=self, sc_data=self.employee_data, return_panel_callback=self.load_return_panel, login_panel_callback=self.load_login_panel)
         self.sc_panel.pack(fill="both", expand=True)
+
+    def load_return_panel(self, log_data):
+        self.return_panel = ReturnPanel(master=self, log_data=log_data, login_panel_callback=self.load_login_panel)
+        self.return_panel.pack(fill="both", expand=True)
 
     def validate_scan_and_load_panel(self, login_panel, UID):
         # auth user

@@ -6,11 +6,12 @@ import threading
 
 
 class MaintainerPanel(ctk.CTkFrame):
-    def __init__(self, master=None, maintainer_data=None, login_panel_callback=None, **kwargs):
+    def __init__(self, master=None, maintainer_data=None, login_panel_callback=None, return_panel_callback=None, **kwargs):
         super().__init__(master, **kwargs)
         self.root = master
         self.maintainer_data = maintainer_data
         self.login_panel_callback = login_panel_callback
+        self.return_panel_callback = return_panel_callback
         self.selected_keys = []
         self.purpose_selected = None
         # Configure the frame dimensions and color
@@ -224,8 +225,12 @@ class MaintainerPanel(ctk.CTkFrame):
                                      f"Issued date-time : {issued_date + '  ' + issued_time}",
                              button1="Close",
                              button2="Return",
-                             callback_function=None
+                             callback_function=lambda log=log_data: self.return_callback(log_data=log)
                             )
+
+    def return_callback(self, log_data):
+        self.destroy()
+        self.return_panel_callback(log_data=log_data)
 
     def scan_sc_card(self):
         while True:

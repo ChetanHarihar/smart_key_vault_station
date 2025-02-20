@@ -7,8 +7,6 @@ import os
 
 # Database connection string
 DB_CONN_STRING = os.environ.get('DB_CONN_STRING')
-# Define the IST timezone
-IST_TIMEZONE = pytz.timezone('Asia/Kolkata')
 
 # Function to establish a connection to the MongoDB database
 def get_db_connection(database_name="smart_key_vault"):
@@ -122,7 +120,7 @@ def fetch_completed_logs(
     if history:
         try:
             # Get the current IST time
-            current_time = datetime.now(IST_TIMEZONE)
+            current_time = datetime.now(pytz.utc)
             if history == "1 week":
                 start_time = current_time - timedelta(weeks=1)
             elif history == "2 weeks":
@@ -219,16 +217,61 @@ def check_key_availability(
         print(f"An unexpected error occurred: {ex}")
         return {key: None for key in keys}
     
+# Function to insert a log 
+def insert_log(collection_name="log", station=None, line=None, reach=None, key=None, purpose=None, key_issuer=None, key_picker=None):
+    try:
+        # Connect to the database using the get_db_connection function
+        db = get_db_connection()
+        collection = db[collection_name]
 
-# Example usage
-if __name__ == "__main__":
-    station_name = "Baiyappanahalli"
-    keys = ["SER", "TER", "DG"]
+        # Get current UTC time
+        current_time_utc = datetime.now(pytz.utc) 
 
-    # Call the function
-    result = check_key_availability(
-        station_name=station_name,
-        keys=keys
-    )
+        # convert to IST to display
+        # Convert to IST (UTC +5:30)
+        ist_offset = timedelta(hours=5, minutes=30)
+        current_time_ist = current_time_utc + ist_offset
 
-    print(result)
+        # Format date and time as strings
+        in_date = current_time_ist.strftime("%d-%m-%Y")  # DD-MM-YYYY format
+        in_time = current_time_ist.strftime("%H:%M")     # HH:MM format
+
+        # Prepare the document
+        document = {
+            "status": "On-going",
+            "station": station,
+            "line": line,
+            "reach": reach,
+            "key": key,
+            "purpose": purpose,
+            "key_picker": {
+                "_id": key_picker.get("_id", ""),
+                "employee_ID": key_picker.get("employee_ID", ""),
+                "name": key_picker.get("name", ""),
+                "UID": key_picker.get("UID", ""),
+                "active_status": key_picker.get("active_status", ""),
+                "department": key_picker.get("department", ""),
+                "designation": key_picker.get("designation", ""),
+                "role": key_picker.get("role", ""),
+                "contact_number": key_picker.get("contact_number", "")
+            },
+            "issued_timestamp": current_time_utc,
+            "issued_date": in_date,
+            "issued_time": in_time,
+            "key_issuer": {
+                "_id": key_issuer.get("_id", ""),
+                "employee_ID": key_issuer.get("employee_ID", ""),
+                "name": key_issuer.get("name", ""),
+                "UID": key_issuer.get("UID", ""),
+                "active_status": key_issuer.get("active_status", ""),
+                "role": key_issuer.get("role", ""),
+                "contact_number": key_issuer.get("contact_number", "")
+            }
+        }
+
+        # Insert the document
+        result = collection.insert_one(document)
+        print(f"Document inserted with ID: {result.inserted_id}")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")

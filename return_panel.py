@@ -52,15 +52,12 @@ class ReturnPanel(ctk.CTkFrame):
         key_var = ctk.StringVar(value=self.log_data.get('key', ''))
         ctk.CTkEntry(master=log_data_frame, textvariable=key_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=2, column=1, padx=5, pady=15)
 
-        # Convert to datetime object
-        # dt = datetime.fromisoformat(self.log_data.get('issued_timestamp', {}).get('$date', ''))
-        dt = self.log_data.get('issued_timestamp')
-        
-        date = dt.strftime("%d-%m-%Y")
-        time = dt.strftime("%H:%M") 
+        # get the date and time
+        issued_date = self.log_data.get('issued_date', "")
+        issued_time = self.log_data.get('issued_time', "")
        
         ctk.CTkLabel(master=log_data_frame, text="Issued date-time:", font=("Arial", 24, 'bold')).grid(row=3, column=0, padx=5, pady=15, sticky='e')
-        dt_var = ctk.StringVar(value=date + '  ' + time)
+        dt_var = ctk.StringVar(value=issued_date + '  ' + issued_time)
         ctk.CTkEntry(master=log_data_frame, textvariable=dt_var, text_color=black, font=("Arial", 22), width=350, height=40, justify="center", state="disabled").grid(row=3, column=1, padx=5, pady=15)
 
         # check for the role
@@ -137,6 +134,8 @@ if __name__ == "__main__":
             "employee_ID": "004"
         },
         "issued_timestamp": datetime(2025, 1, 24, 16, 40),
+        "issued_date": "20-02-2025",
+        "issued_time": "12:05",
         "key_issuer": {
             "_id": ObjectId("6787bd971dbc5343d0965489"),
             "name": "Ananth Kumar Shinde V",

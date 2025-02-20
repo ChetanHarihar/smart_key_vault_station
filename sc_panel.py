@@ -203,10 +203,10 @@ class StationControllerPanel(ctk.CTkFrame):
         self.load_manage_keys_tab()
 
     def show_ongoing_popup(self, log_data):
-        issued_date = log_data.get('issued_timestamp',"").strftime("%d-%m-%Y")
-        issued_time = log_data.get('issued_timestamp',"").strftime("%H:%M")
+        issued_date = log_data.get('issued_date',"")
+        issued_time = log_data.get('issued_time',"")
         open_toplevel_window(toplevel_width=700, 
-                             toplevel_height=400, 
+                             toplevel_height=400,
                              title="On-going log", 
                              color=red, 
                              message=f"Name : {log_data.get('key_picker', {}).get('name', '')}\n" + \
@@ -304,10 +304,10 @@ class StationControllerPanel(ctk.CTkFrame):
             return
 
         for index, log in enumerate(logs):
-            issued_date = log.get('issued_timestamp',"").strftime("%d-%m-%Y")
-            issued_time = log.get('issued_timestamp',"").strftime("%H:%M")
-            returned_date = log.get('returned_timestamp',"").strftime("%d-%m-%Y")
-            returned_time = log.get('returned_timestamp',"").strftime("%H:%M")
+            issued_date = log.get('issued_date', "")
+            issued_time = log.get('issued_time', "")
+            returned_date = log.get('returned_date')
+            returned_time = log.get('returned_time')
 
             issuer_role = log.get("key_issuer", {}).get("role", "")
 

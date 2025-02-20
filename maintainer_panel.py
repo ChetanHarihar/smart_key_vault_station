@@ -211,8 +211,8 @@ class MaintainerPanel(ctk.CTkFrame):
         self.emergency_btn.configure(state="disabled")
 
     def show_ongoing_popup(self, log_data):
-        issued_date = log_data.get('issued_timestamp',"").strftime("%d-%m-%Y")
-        issued_time = log_data.get('issued_timestamp',"").strftime("%H:%M")
+        issued_date = log_data.get('issued_date', "")
+        issued_time = log_data.get('issued_time', "")
         open_toplevel_window(toplevel_width=700, 
                              toplevel_height=400, 
                              title="On-going log", 

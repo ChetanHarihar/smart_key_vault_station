@@ -3,8 +3,9 @@ import time
 import json
 
 class DoorControl:
-    def __init__(self):
+    def __init__(self, app):
         """Initialize GPIO pins, multiplexer, and room configurations."""
+        self.app = app
         self.gpio_chip = lgpio.gpiochip_open(0)
 
         # Define GPIO pins for the CD74HC4067 multiplexer
@@ -38,6 +39,8 @@ class DoorControl:
         self.blinking_leds = []
         self.led_state = True
 
+        self.blink_red_led()
+
     def set_channel(self, channel):
         """Set the multiplexer to a specific channel."""
         lgpio.gpio_write(self.gpio_chip, self.S0, channel & 0x01)
@@ -52,7 +55,9 @@ class DoorControl:
     def open_door(self, room_name, action):
         """Unlock and lock door based on feedback pin status."""
         room_name = room_name.strip()
-        self.update_door_data(room_name, action)
+
+        if action == 'return':
+            self.update_door_data(room_name, action)
 
         if room_name in self.door_config:
             lock_pin = self.door_config[room_name]["lock_pin"]
@@ -85,6 +90,9 @@ class DoorControl:
             self.control_signal(0)
             time.sleep(0.5)
             print(f"{room_name} Green LED OFF, door locked")
+        
+        if action == 'pick':
+            self.update_door_data(room_name, action)
 
     def update_door_data(self, room_name, action):
         """Update door status in a JSON file."""
@@ -94,7 +102,7 @@ class DoorControl:
         except (FileNotFoundError, json.JSONDecodeError):
             door_data = {}
 
-        door_data[room_name] = (action == "returned")
+        door_data[room_name] = (action == "return")
 
         with open("./door_data.json", "w") as file:
             json.dump(door_data, file)
@@ -115,16 +123,37 @@ class DoorControl:
 
         self.led_state = not self.led_state
 
+        # Schedule the next blink in 500ms
+        self.app.after(1000, self.blink_red_led)
+
     def cleanup_gpio(self):
         """Clean up GPIO settings."""
         lgpio.gpiochip_close(self.gpio_chip)
 
+
 # Example usage
 if __name__ == "__main__":
-    controller = DoorControl()
-    try:
-        while True:
-            controller.blink_red_led()
-            time.sleep(0.5)
-    finally:
-        controller.cleanup_gpio()
+    import customtkinter as ctk
+
+    class TestApp(ctk.CTk):
+        def __init__(self):
+            super().__init__()
+            self.title("Door Control Test")
+            self.geometry("400x200")
+
+            # Initialize DoorControl with self
+            self.door_controller = DoorControl(self)
+
+            self.door_controller.open_door(room_name="S & T UPS", action="pick")
+
+            # Button to close the application
+            self.exit_button = ctk.CTkButton(self, text="Exit", command=self.cleanup_and_exit)
+            self.exit_button.pack(pady=20)
+
+        def cleanup_and_exit(self):
+            """Cleanup GPIO before exiting."""
+            self.door_controller.cleanup_gpio()
+            self.destroy()
+
+    app = TestApp()
+    app.mainloop()

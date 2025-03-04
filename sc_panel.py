@@ -1,11 +1,11 @@
 from settings import *
 from gui_components.treeview import TreeView
-from gui_components.toplevel import open_toplevel_window
+from gui_components.toplevel import TopLevelWindow
 from services.database import *
 
 
 class StationControllerPanel(ctk.CTkFrame):
-    def __init__(self, master=None, sc_data=None, login_panel_callback=None, return_panel_callback=None, **kwargs):
+    def __init__(self, master=None, sc_data=None, login_panel_callback=None, return_panel_callback=None, door_controller=None, **kwargs):
         super().__init__(master, **kwargs)
         self.root = master
         self.sc_data = sc_data
@@ -15,6 +15,7 @@ class StationControllerPanel(ctk.CTkFrame):
         self.page_size = 20
         self.current_offset = 0
         self.all_data_loaded = False
+        self.door_controller = door_controller
         # Configure the frame dimensions and color
         self.configure(fg_color="white", width=WINDOW_WIDTH, height=WINDOW_HEIGHT)
         self.pack_propagate(False)
@@ -182,9 +183,20 @@ class StationControllerPanel(ctk.CTkFrame):
         if self.selected_keys:
             # on proceed disable widgets
             self.disable_widgets()
-            pass
+            
+            toplevel = TopLevelWindow(toplevel_width=450, toplevel_height=200, title="Retrieve Keys", color=green, message="Collect the keys and close the door.")
+            
+            for key in self.selected_keys:
+                self.door_controller.open_door(room_name=key, action='pick')
+                insert_log(station=STATION_NAME, line=STATION_LINE, reach=STATION_REACH, key=key, purpose="Emergency", key_issuer=self.sc_data, key_picker=self.sc_data)
+
+            toplevel.destroy()
+
+            self.reload_key_pickup_page()
+            self.load_view_logs_tab()
+
         else:
-            open_toplevel_window(toplevel_width=450, toplevel_height=200, title="Unable to proceed", color=red, message="Select a key", button1="OK")
+            TopLevelWindow(toplevel_width=450, toplevel_height=200, title="Unable to proceed", color=red, message="Select a key", button1="OK")
 
     def disable_widgets(self):
         # Disable all checkboxes
@@ -205,7 +217,7 @@ class StationControllerPanel(ctk.CTkFrame):
     def show_ongoing_popup(self, log_data):
         issued_date = log_data.get('issued_date',"")
         issued_time = log_data.get('issued_time',"")
-        open_toplevel_window(toplevel_width=700, 
+        TopLevelWindow(toplevel_width=700, 
                              toplevel_height=400,
                              title="On-going log", 
                              color=red, 
@@ -217,12 +229,12 @@ class StationControllerPanel(ctk.CTkFrame):
                                      f"Issued date-time : {issued_date + '  ' + issued_time}",
                              button1="Close",
                              button2="Return",
-                             callback_function=lambda log=log_data: self.return_callback(log_data=log)
+                             callback_function=lambda log=log_data, sc=self.sc_data: self.return_callback(key_returner=sc, log_data=log)
                             )
         
-    def return_callback(self, log_data):
+    def return_callback(self, key_returner, log_data):
         self.destroy()
-        self.return_panel_callback(log_data=log_data)
+        self.return_panel_callback(key_returner=key_returner, log_data=log_data)
 
     def load_view_logs_tab(self):
         self.view_logs_treeview_frame = tk.Frame(self.view_logs_tab, bg="white")
@@ -384,6 +396,10 @@ class StationControllerPanel(ctk.CTkFrame):
         export_button = ctk.CTkButton(master=export_data_frame, text="Export", font=("Arial", 24), width=180, height=40, fg_color=purple, command=self.export_data)
         export_button.pack(pady=20)
 
+        # exit app button
+        exit_app_button = ctk.CTkButton(master=export_data_frame, text="Exit Application", font=("Arial", 24), width=180, height=40, fg_color=purple, command=self.exit_app)
+        exit_app_button.pack(pady=20)
+
     def export_data(self):
         # get the selected value
         selected_option = self.export_option.get()
@@ -393,6 +409,9 @@ class StationControllerPanel(ctk.CTkFrame):
     def exit_panel(self):
         self.destroy()
         self.login_panel_callback()
+
+    def exit_app(self):
+        self.root.destroy()
 
 
 if __name__ == "__main__":

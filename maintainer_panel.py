@@ -1,12 +1,12 @@
 from settings import *
-from gui_components.toplevel import open_toplevel_window
+from gui_components.toplevel import TopLevelWindow
 from services.database import *
 from services.nfc_reader import read_nfc_tag
 import threading
 
 
 class MaintainerPanel(ctk.CTkFrame):
-    def __init__(self, master=None, maintainer_data=None, login_panel_callback=None, return_panel_callback=None, **kwargs):
+    def __init__(self, master=None, maintainer_data=None, login_panel_callback=None, return_panel_callback=None, door_controller=None, **kwargs):
         super().__init__(master, **kwargs)
         self.root = master
         self.maintainer_data = maintainer_data
@@ -14,6 +14,7 @@ class MaintainerPanel(ctk.CTkFrame):
         self.return_panel_callback = return_panel_callback
         self.selected_keys = []
         self.purpose_selected = None
+        self.door_controller = door_controller
         # Configure the frame dimensions and color
         self.configure(fg_color="white", width=WINDOW_WIDTH, height=WINDOW_HEIGHT)
         self.pack_propagate(False)
@@ -194,9 +195,10 @@ class MaintainerPanel(ctk.CTkFrame):
                 start_sc_scan.start()
             elif self.purpose_selected == 'Emergency':
                 # retrieve keys without approval
-                pass
+                retrieve_keys = threading.Thread(target=self.retrieve_keys, daemon=True)
+                retrieve_keys.start()
         else:
-            open_toplevel_window(toplevel_width=450, toplevel_height=200, title="Unable to proceed", color=red, message="Select a key and purpose", button1="OK")
+            TopLevelWindow(toplevel_width=450, toplevel_height=200, title="Unable to proceed", color=red, message="Select a key and purpose", button1="OK")
 
     def disable_widgets(self):
         # Disable all checkboxes
@@ -213,26 +215,29 @@ class MaintainerPanel(ctk.CTkFrame):
     def show_ongoing_popup(self, log_data):
         issued_date = log_data.get('issued_date', "")
         issued_time = log_data.get('issued_time', "")
-        open_toplevel_window(toplevel_width=700, 
-                             toplevel_height=400, 
-                             title="On-going log", 
-                             color=red, 
-                             message=f"Name : {log_data.get('key_picker', {}).get('name', '')}\n" + \
-                                     f"Employee ID : {log_data.get('key_picker', {}).get('employee_ID', '')}\n" + \
-                                     f"Department : {log_data.get('key_picker', {}).get('department', '')}\n" + \
-                                     f"Designation : {log_data.get('key_picker', {}).get('designation', '')}\n" + \
-                                     f"Contact : {log_data.get('key_picker', {}).get('contact_number', '')}\n" + \
-                                     f"Issued date-time : {issued_date + '  ' + issued_time}",
-                             button1="Close",
-                             button2="Return",
-                             callback_function=lambda log=log_data: self.return_callback(log_data=log)
-                            )
+        TopLevelWindow(
+                        toplevel_width=700, 
+                        toplevel_height=400, 
+                        title="On-going log", 
+                        color=red, 
+                        message=f"Name : {log_data.get('key_picker', {}).get('name', '')}\n" + \
+                                f"Employee ID : {log_data.get('key_picker', {}).get('employee_ID', '')}\n" + \
+                                f"Department : {log_data.get('key_picker', {}).get('department', '')}\n" + \
+                                f"Designation : {log_data.get('key_picker', {}).get('designation', '')}\n" + \
+                                f"Contact : {log_data.get('key_picker', {}).get('contact_number', '')}\n" + \
+                                f"Issued date-time : {issued_date + '  ' + issued_time}",
+                                button1="Close",
+                                button2="Return",
+                                callback_function=lambda log=log_data, maintainer=self.maintainer_data: self.return_callback(key_returner=maintainer, log_data=log)
+                                )
 
-    def return_callback(self, log_data):
+    def return_callback(self, key_returner, log_data):
         self.destroy()
-        self.return_panel_callback(log_data=log_data)
+        self.return_panel_callback(key_returner=key_returner, log_data=log_data)
 
     def scan_sc_card(self):
+        auth = False
+
         while True:
             try:
                 # Read the UID from the NFC reader
@@ -249,12 +254,26 @@ class MaintainerPanel(ctk.CTkFrame):
             if card_data:
                 if role == 'sc':
                     print("SC auth done")
-                    return
+                    auth = True
+                    break
                 elif (role == 'mastercard') and (station == STATION_NAME):
                     print("Mastercard auth done")
-                    return
-                else:
-                    pass
+                    auth = True
+                    break
+
+        if auth:
+            self.retrieve_keys(card_data=card_data)
+
+    def retrieve_keys(self, card_data=None):
+        toplevel = TopLevelWindow(toplevel_width=450, toplevel_height=200, title="Retrieve Keys", color=green, message="Collect the keys and close the door.")
+
+        for key in self.selected_keys:
+            self.door_controller.open_door(room_name=key, action='pick')
+            insert_log(station=STATION_NAME, line=STATION_LINE, reach=STATION_REACH, key=key, purpose=self.purpose_selected, key_issuer=card_data if card_data else {}, key_picker=self.maintainer_data)
+
+        toplevel.destroy()
+    
+        self.exit_panel()
             
     def exit_panel(self):
         self.destroy()

@@ -275,3 +275,64 @@ def insert_log(collection_name="log", station=None, line=None, reach=None, key=N
 
     except Exception as e:
         print(f"An error occurred: {e}")
+
+# Function to update the log
+def update_log(collection_name="log", log_id=None, status="Completed", key_returner=None, key_receiver=None):
+    try:
+        # Connect to the database using the get_db_connection function
+        db = get_db_connection()
+        collection = db[collection_name]
+
+        # Prepare the current UTC timestamp for the returned timestamp
+        current_time_utc = datetime.now(pytz.utc)
+
+        # convert to IST to display
+        # Convert to IST (UTC +5:30)
+        ist_offset = timedelta(hours=5, minutes=30)
+        current_time_ist = current_time_utc + ist_offset
+
+        # Format date and time as strings
+        out_date = current_time_ist.strftime("%d-%m-%Y")  # DD-MM-YYYY format
+        out_time = current_time_ist.strftime("%H:%M")     # HH:MM format
+
+        # Prepare the updated document
+        updated_document = {
+            "status": status,
+            "returned_timestamp": current_time_utc,  # Convert returned timestamp to UTC
+            "returned_data": out_date,
+            "returned_time": out_time,
+            "key_returner": {
+                "_id": key_returner.get("_id", ""),
+                "employee_ID": key_returner.get("employee_ID", ""),
+                "name": key_returner.get("name", ""),
+                "UID": key_returner.get("UID", ""),
+                "active_status": key_returner.get("active_status", ""),
+                "department": key_returner.get("department", ""),
+                "designation": key_returner.get("designation", ""),
+                "role": key_returner.get("role", ""),
+                "contact_number": key_returner.get("contact_number", "")
+            },
+            "key_receiver": {
+                "_id": key_receiver.get("_id", ""),
+                "employee_ID": key_receiver.get("employee_ID", ""),
+                "name": key_receiver.get("name", ""),
+                "UID": key_receiver.get("UID", ""),
+                "active_status": key_receiver.get("active_status", ""),
+                "role": key_receiver.get("role", ""),
+                "contact_number": key_receiver.get("contact_number", "")
+            }
+        }
+
+        # Update the document
+        result = collection.update_one(
+            {"_id": ObjectId(log_id)},
+            {"$set": updated_document}
+        )
+
+        if result.matched_count > 0:
+            print(f"Log with ID: {log_id} updated successfully.")
+        else:
+            print(f"No log found with ID: {log_id}")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")

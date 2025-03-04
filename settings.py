@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image
 import os
+import json
 
 
 # Screen size
@@ -42,3 +43,20 @@ KEY_MAP = {"Signalling": [s_and_t_ups, ser],
            "Fire": [s_and_t_ups, ser, ter, ass_and_tss, dg, pump],
            "All": [s_and_t_ups, ser, ter, ass_and_tss, dg, pump]
            }
+
+def create_door_data_file(file_name="door_data.json"):
+    data = {
+        s_and_t_ups : True,
+        ser : True,
+        ter : True,
+        ass_and_tss : True,
+        dg : True,
+        pump : True
+    }
+
+    if not os.path.exists(file_name):
+        with open(file_name, "w") as file:
+            json.dump(data, file, indent=4)
+
+# Call the function
+create_door_data_file()

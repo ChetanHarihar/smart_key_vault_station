@@ -37,6 +37,7 @@ class DoorControl:
             lgpio.gpio_claim_input(self.gpio_chip, config["feedback_pin"], lgpio.SET_PULL_UP)
         
         self.blinking_leds = []
+        self.off_leds = []
         self.led_state = True
 
         self.blink_red_led()
@@ -116,12 +117,17 @@ class DoorControl:
             door_data = {}
 
         self.blinking_leds = [k for k, v in door_data.items() if not v]
+        self.off_leds = [k for k, v in door_data.items() if v]
 
         for room_name in self.blinking_leds:
             red_led = self.door_config[room_name]["red_led"]
             lgpio.gpio_write(self.gpio_chip, red_led, 1 if self.led_state else 0)
 
         self.led_state = not self.led_state
+
+        for room_name in self.off_leds:
+            red_led = self.door_config[room_name]["red_led"]
+            lgpio.gpio_write(self.gpio_chip, red_led, 0)
 
         # Schedule the next blink in 500ms
         self.app.after(1000, self.blink_red_led)
@@ -144,7 +150,7 @@ if __name__ == "__main__":
             # Initialize DoorControl with self
             self.door_controller = DoorControl(self)
 
-            self.door_controller.open_door(room_name="S & T UPS", action="pick")
+            self.door_controller.open_door(room_name="S & T UPS", action="return")
 
             # Button to close the application
             self.exit_button = ctk.CTkButton(self, text="Exit", command=self.cleanup_and_exit)

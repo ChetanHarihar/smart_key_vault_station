@@ -4,6 +4,7 @@ from maintainer_panel import MaintainerPanel
 from sc_panel import StationControllerPanel
 from return_panel import ReturnPanel
 from services.database import auth_user
+from services.door_control import DoorControl
 
 
 class App(ctk.CTk):
@@ -12,13 +13,15 @@ class App(ctk.CTk):
 
         # Configure window properties
         self.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
-        self.overrideredirect(True)   # Enables full screen
+        # self.overrideredirect(True)   # Enables full screen
 
         # Set CTk appearance mode
         ctk.set_appearance_mode("Light")
         ctk.set_default_color_theme("themes/violet.json")
 
-        # Load the login panel 
+        # initiate the door control module
+        self.door_controller = DoorControl(self)
+        # Load the login panel
         self.load_login_panel()
 
     def load_login_panel(self):
@@ -26,15 +29,15 @@ class App(ctk.CTk):
         self.login_panel.pack(fill="both", expand=True)
 
     def load_maintainer_panel(self):
-        self.maintatiner_panel = MaintainerPanel(master=self, maintainer_data=self.employee_data, return_panel_callback=self.load_return_panel, login_panel_callback=self.load_login_panel)
+        self.maintatiner_panel = MaintainerPanel(master=self, maintainer_data=self.employee_data, return_panel_callback=self.load_return_panel, login_panel_callback=self.load_login_panel, door_controller=self.door_controller)
         self.maintatiner_panel.pack(fill="both", expand=True)
 
     def load_sc_panel(self):
-        self.sc_panel = StationControllerPanel(master=self, sc_data=self.employee_data, return_panel_callback=self.load_return_panel, login_panel_callback=self.load_login_panel)
+        self.sc_panel = StationControllerPanel(master=self, sc_data=self.employee_data, return_panel_callback=self.load_return_panel, login_panel_callback=self.load_login_panel, door_controller=self.door_controller)
         self.sc_panel.pack(fill="both", expand=True)
 
-    def load_return_panel(self, log_data):
-        self.return_panel = ReturnPanel(master=self, log_data=log_data, login_panel_callback=self.load_login_panel)
+    def load_return_panel(self, key_returner, log_data):
+        self.return_panel = ReturnPanel(master=self, key_returner=key_returner, log_data=log_data, login_panel_callback=self.load_login_panel, door_controller=self.door_controller)
         self.return_panel.pack(fill="both", expand=True)
 
     def validate_scan_and_load_panel(self, login_panel, UID):

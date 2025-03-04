@@ -1,14 +1,20 @@
 from settings import *
+from gui_components.toplevel import TopLevelWindow
 from datetime import datetime
 from services.database import *
+from services.nfc_reader import read_nfc_tag
+import threading
 
 
 class ReturnPanel(ctk.CTkFrame):
-    def __init__(self, master=None, log_data=None, login_panel_callback=None, **kwargs):
+    def __init__(self, master=None, key_returner=None, log_data=None, login_panel_callback=None, door_controller=None, **kwargs):
         super().__init__(master, **kwargs)
         self.root = master
+        self.key_returner = key_returner
         self.log_data = log_data
+        print(log_data)
         self.login_panel_callback = login_panel_callback
+        self.door_controller = door_controller
         # Configure the frame dimensions and color
         self.configure(fg_color="white", width=WINDOW_WIDTH, height=WINDOW_HEIGHT)
         self.pack_propagate(False)
@@ -92,7 +98,57 @@ class ReturnPanel(ctk.CTkFrame):
 
     def on_return(self):
         # if checkbox in checked return key
-        pass
+        if self.return_var.get():
+            # destroy the checkbox and return button
+            self.return_checkbox.destroy()
+            self.return_button.destroy()
+
+            # pack the scan sc card 
+            self.sc_scan_label = ctk.CTkLabel(master=self, text="Scan station controller card", font=("Arial", 30, 'bold'), text_color=green)
+            self.sc_scan_label.pack(pady=(40,30))
+
+            # scan for card and auth for sc card
+            sc_scan = threading.Thread(target=self.scan_sc_card, daemon=True)
+            sc_scan.start()
+
+    def scan_sc_card(self):
+        auth = False
+
+        while True:
+            try:
+                # Read the UID from the NFC reader
+                uid = read_nfc_tag()
+            except Exception as e:
+                print(f"Error reading RFID tag: {e}")
+            finally:
+                # Ensure the thread terminates after reading the tag
+                print("RFID reading thread finished.")
+            # auth the card
+            card_data = auth_user(UID=uid)
+            role = card_data.get('role', '')
+            station = card_data.get('station', '')
+            if card_data:
+                if role == 'sc':
+                    print("SC auth done")
+                    auth = True
+                    break
+                elif (role == 'mastercard') and (station == STATION_NAME):
+                    print("Mastercard auth done")
+                    auth = True
+                    break
+
+        if auth:
+            self.return_keys(card_data=card_data)
+
+    def return_keys(self, card_data):        
+        toplevel = TopLevelWindow(toplevel_width=450, toplevel_height=200, title="Return Key", color=green, message="Return the key and close the door.")
+
+        update_log(collection_name="log", log_id=self.log_data.get('_id',''), status="Completed", key_returner=self.key_returner, key_receiver=card_data)
+        self.door_controller.open_door(room_name=self.log_data.get('key', ''), action='return')
+
+        toplevel.destroy()
+    
+        self.exit_panel()
 
     def exit_panel(self):
         self.destroy()
@@ -105,7 +161,7 @@ if __name__ == "__main__":
     # Configure the root window
     root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
 
-    root.overrideredirect(True)   # Enables full screen
+    # root.overrideredirect(True)   # Enables full screen
 
     # Set CTk appearance mode
     ctk.set_appearance_mode("Light")

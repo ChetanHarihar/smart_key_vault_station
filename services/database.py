@@ -95,6 +95,44 @@ def auth_user(collection_name="employee", UID=None, projection=None):
     except Exception as ex:
         print(f"An unexpected error occurred: {ex}")
         return None
+    
+# Function to get employee details by employee_ID
+def get_employee_details(collection_name="employee", employee_ID=None, projection=None):
+    """
+    Retrieves employee details using employee ID.
+
+    Parameters:
+        collection_name (str): The name of the collection within the database.
+        employee_ID (str): The employee ID to search for.
+        projection (dict, optional): Specifies fields to include or exclude in the result.
+
+    Returns:
+        dict or None: A single document matching the filter if found, else None.
+    """
+    if not employee_ID:
+        print("Error: Employee ID is required.")
+        return None
+
+    filter_criteria = {"employee_ID": employee_ID}
+
+    try:
+        # Connect to the database
+        db = get_db_connection()
+
+        # Access the specified collection
+        collection = db[collection_name]
+
+        # Query for a single matching document
+        document = collection.find_one(filter_criteria, projection)
+
+        return document
+
+    except PyMongoError as e:
+        print(f"MongoDB operation error: {e}")
+        return None
+    except Exception as ex:
+        print(f"Unexpected error: {ex}")
+        return None
 
 # Function to fetch completed logs for a specific station
 def fetch_completed_logs(

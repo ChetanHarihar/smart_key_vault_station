@@ -56,7 +56,7 @@ def get_all_collections():
         return None
 
 # Function to authenticate the user
-def auth_user(collection_name="employee", UID=None, projection=None):
+def auth_user(collection_name="employee", UID=None, projection={"_id": 1, "name": 1, "employee_ID": 1, "designation": 1, "department": 1, "role": 1, "UID": 1}):
     """
     Authenticates a user by validating the card scanned.
 
@@ -97,7 +97,7 @@ def auth_user(collection_name="employee", UID=None, projection=None):
         return None
     
 # Function to get employee details by employee_ID
-def get_employee_details(collection_name="employee", employee_ID=None, projection=None):
+def get_employee_details(collection_name="employee", employee_ID=None, projection={"_id": 1, "name": 1, "employee_ID": 1, "designation": 1, "department": 1, "role": 1, "UID": 1}):
     """
     Retrieves employee details using employee ID.
 

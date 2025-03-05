@@ -290,7 +290,6 @@ if __name__ == "__main__":
 
     # Set CTk appearance mode
     ctk.set_appearance_mode("Light")
-    ctk.set_default_color_theme("themes/violet.json")
 
     maintainer_data = {
                         "name": "Chetan S Harihar",

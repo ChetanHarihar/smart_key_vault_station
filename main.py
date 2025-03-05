@@ -17,7 +17,6 @@ class App(ctk.CTk):
 
         # Set CTk appearance mode
         ctk.set_appearance_mode("Light")
-        ctk.set_default_color_theme("themes/violet.json")
 
         # initiate the door control module
         self.door_controller = DoorControl(self)

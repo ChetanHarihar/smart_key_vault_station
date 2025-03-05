@@ -23,14 +23,13 @@ def read_nfc_tag():
             return hex_uid.upper()  # Return the detected UID
         time.sleep(0.1)  # Delay to avoid high CPU usage
 
-# This block ensures the code is only run when executed directly, not imported.
+
 if __name__ == "__main__":
     try:
         # Call the read_nfc_tag function and print the UID when detected
         detected_uid = read_nfc_tag()
         print(f"Detected UID: {detected_uid}")
     except KeyboardInterrupt:
-        # Graceful exit on Ctrl+C
         print("Program interrupted.")
     finally:
         print("Program terminated.")
